@@ -77,14 +77,14 @@ void loop() {
 
     digitalWrite(pin_Vin, HIGH);
     while (true) {
-        readVin = analogRead(pin_Vin);
-        voltageVin = (float)(readVin / ADC_Scale);// Connect Vin to A1/D55
-        readFSR = analogRead(pin_Vin);
-        voltageFSR = (float) (readFSR / ADC_Scale);
+       // readVin = analogRead(pin_Vin);
+        //voltageVin = (float)(readVin / ADC_Scale);// Connect Vin to A1/D55
+        readFSR = analogRead(pin_FSR);
+        voltageFSR = ((float) readFSR / (float) ADC_Scale);
         Serial.print("FSR Voltage: ");
         Serial.println(voltageFSR);
-        volume = mapFSR(voltageFSR, voltageVin);
-        delay(500);
+        volume = mapFSR(voltageFSR, 3.22);
+        delay(1000);
     }
 }
 
