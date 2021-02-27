@@ -5,26 +5,119 @@
 #include "RTClib.h"  
 #include <Adafruit_ADXL345_U.h>
 #include <Adafruit_Sensor.h>
+#include "Header.h"
 
 int flag = 0;
-int LED = 8;
 
 OLED_GFX oled = OLED_GFX();
 
 Adafruit_ADXL345_Unified accel = Adafruit_ADXL345_Unified();
 
 RTC_DS3231 rtc;
-char daysOfTheWeek[7][12] = { "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday" };
 
 void setup() {
-    //Serial.begin(115200);
-    //setupOLED();
-    //setupBluetooth();
+    Serial.begin(115200);
+    setupFSR();
+
+    //setupRTC();
     //setupAccel();
+    //setupOLED();
+    //setupBluetooth(); 
+}
+
+float mapFSR(float voltage, float vin) {
+    float mass;
+    float volume;
+    float bottleMass = 0.290;// bottle + puck
+    int R = 2000;//
+    float Vcc = vin;//~3.3
+    float fsrResistance;
+    float fsrConductance;
+    float constant = 11832.369;
+    float fsrForce;
+    //300g 2.71V
+    //350g 2.75V
+    //400g 2.79V
+    //450g 2.83V
+    //500g 2.86V
+
+    //2k
+    //1.2 to 1.8
+
+    Serial.print("Vcc: ");
+    Serial.print(Vcc);
+    Serial.println(" V");
+    Serial.print("Voltage: ");
+    Serial.print(voltage);
+    Serial.println(" V");
+    fsrResistance = ((Vcc * R) / voltage) - R;
+    Serial.print("FSR Resistance: ");
+    Serial.print(fsrResistance);
+    Serial.println(" Ohms");
+    fsrConductance = 1 / fsrResistance;
+    Serial.print("FSR Conductance: ");
+    Serial.print(fsrConductance);
+    Serial.println(" Ohms");
+    fsrForce = fsrConductance * constant;
+    Serial.print("FSR Force: ");
+    Serial.print(fsrForce);
+    Serial.println(" N");
+    mass = (fsrForce / 9.81) - bottleMass;
+    volume = mass * 1000;
+    Serial.print("Calculated Volume: ");
+    Serial.print(volume);
+    Serial.println(" mL");
+    return volume;
 }
 
 void loop() {
-    //
+    uint32_t readFSR, readVin;
+    float voltageFSR, voltageVin;
+    float volume;
+
+    digitalWrite(pin_Vin, HIGH);
+    while (true) {
+        readVin = analogRead(pin_Vin);
+        voltageVin = (float)(readVin / ADC_Scale);// Connect Vin to A1/D55
+        readFSR = analogRead(pin_Vin);
+        voltageFSR = (float) (readFSR / ADC_Scale);
+        Serial.print("FSR Voltage: ");
+        Serial.println(voltageFSR);
+        volume = mapFSR(voltageFSR, voltageVin);
+        delay(500);
+    }
+}
+
+void setupFSR() {
+    Serial.begin(9600);
+    pinMode(pin_FSR, INPUT);
+    pinMode(pin_Vin, OUTPUT);
+    analogReadResolution(12);
+}
+
+void setupRTC() {
+    //SDA1, SCL1
+    //pinMode(?, ?)
+    //pinMode(?, ?)
+}
+
+void setupBluetooth() {
+    Serial1.begin(9600);
+    pinMode(pin_LED, OUTPUT);
+    Serial.println("Ready to connect\nDefualt password is 1234 or 000");
+}
+
+void setupAccel() {
+    Serial.println();
+
+    //ACCEL
+    Serial.println("ACCEL - wire.begin ====");
+    Wire.begin();//I2C 0, SCL SDA
+    if (!accel.begin())
+    {
+        Serial.println("No valid sensor found");
+        while (1);
+    }
 }
 
 void setupOLED() {
@@ -52,7 +145,7 @@ void setupOLED() {
     delay(3000);
 
     oled.Clear_Screen();
-    uint8_t text[] = "Hello World !";
+    uint8_t text[] = "Hello World!";
     oled.Set_Color(BLUE);
     oled.print_String(20, 50, text, FONT_5X8);
     delay(2000);
@@ -93,31 +186,12 @@ void setupOLED() {
     // oled.Fill_Color(BLUE);
 }
 
-void setupBluetooth() {
-    Serial1.begin(9600);
-    pinMode(LED, OUTPUT);
-    Serial.println("Ready to connect\nDefualt password is 1234 or 000");
-}
-
-void setupAccel() {
-    Serial.println();
-
-    //ACCEL
-    Serial.println("ACCEL - wire.begin ====");
-    Wire.begin();
-    if (!accel.begin())
-    {
-        Serial.println("No valid sensor found");
-        while (1);
-    }
-}
-
 void loopAccel() {
     sensors_event_t event;
     accel.getEvent(&event);
-    Serial.print("X: "); Serial.print((int) event.acceleration.x); Serial.print("");// Did not like float.
-    Serial.print("Y: "); Serial.print((int) event.acceleration.y); Serial.print("");
-    Serial.print("Z: "); Serial.print((int) event.acceleration.z); Serial.print("");
+    Serial.print("X: "); Serial.print(event.acceleration.x); Serial.print("");
+    Serial.print("Y: "); Serial.print(event.acceleration.y); Serial.print("");
+    Serial.print("Z: "); Serial.print(event.acceleration.z); Serial.print("");
     Serial.println("m/s^2 ");
     delay(500);
 }
@@ -126,14 +200,13 @@ void loopBluetooth() {
     if (Serial1.available())
         flag = Serial1.read();
     if (flag == 1) {
-        digitalWrite(LED, HIGH);
+        digitalWrite(pin_LED, HIGH);
         Serial.println("LED On");
     }
     else if (flag == 0) {
-        digitalWrite(LED, HIGH);
+        digitalWrite(pin_LED, HIGH);
         Serial.println("LED Off");
     }
-
     //if (Serial.available())
         //Serial1.write(Serial.read());
 }
@@ -155,15 +228,14 @@ void loopRTC() {
     Serial.print(':');
     Serial.print(now.second(), DEC);
     Serial.println();
-
     //Serial.print(" since midnight 1/1/1970 = ");
     //Serial.print(now.unixtime());
     //Serial.print("s = ");
     //Serial.print(now.unixtime() / 86400L);
     //Serial.println("d");
-
 }
 
+// OLED Functions
 void testlines(void) {
 
     oled.Set_Color(RED);
