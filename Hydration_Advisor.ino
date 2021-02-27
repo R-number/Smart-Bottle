@@ -35,7 +35,7 @@ void loop() {
             digitalWrite(52, HIGH);
             delay(500);
             uint32_t FSRread = analogRead(FSRpin);
-            float FSRfloat = ((float) FSRread / 4095.0) * 3.3;
+            float FSRfloat = ((float) FSRread / 4095.0) * 3.229;
             Serial.print("FSR voltage:");
             Serial.println(FSRfloat);
             digitalWrite(52, LOW);
