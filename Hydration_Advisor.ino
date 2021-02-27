@@ -44,29 +44,41 @@ float mapFSR(float voltage, float vin) {
     //2k
     //1.2 to 1.8
 
-    Serial.print("Vcc: ");
-    Serial.print(Vcc);
-    Serial.println(" V");
-    Serial.print("Voltage: ");
-    Serial.print(voltage);
-    Serial.println(" V");
+    //Serial.print("Vcc: ");
+    //Serial.print(Vcc);
+    //Serial.println(" V");
+    //Serial.print("Voltage: ");
+    //Serial.print(voltage);
+    //Serial.println(" V");
     fsrResistance = ((Vcc * R) / voltage) - R;
-    Serial.print("FSR Resistance: ");
-    Serial.print(fsrResistance);
-    Serial.println(" Ohms");
+    //Serial.print("FSR Resistance: ");
+    //Serial.print(fsrResistance);
+    //Serial.println(" Ohms");
     fsrConductance = 1 / fsrResistance;
-    Serial.print("FSR Conductance: ");
-    Serial.print(fsrConductance);
-    Serial.println(" Ohms");
+    //Serial.print("FSR Conductance: ");
+    //Serial.print(fsrConductance);
+    //Serial.println(" Ohms");
     fsrForce = fsrConductance * constant;
-    Serial.print("FSR Force: ");
-    Serial.print(fsrForce);
-    Serial.println(" N");
+    //Serial.print("FSR Force: ");
+    //Serial.print(fsrForce);
+    //Serial.println(" N");
     mass = (fsrForce / 9.81) - bottleMass;
     volume = mass * 1000;
     Serial.print("Calculated Volume: ");
-    Serial.print(volume);
-    Serial.println(" mL");
+    //Serial.print(volume);
+    //Serial.println(" mL");
+
+    Serial.print(Vcc);
+    Serial.print(", ");
+    Serial.print(voltage);
+    Serial.print(", ");
+    Serial.print(fsrResistance);
+    Serial.print(", ");
+    Serial.print(fsrConductance);
+    Serial.print(", ");
+    Serial.print(fsrForce);
+    Serial.print(", ");
+    Serial.println(volume);
     return volume;
 }
 
