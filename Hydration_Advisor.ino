@@ -1,3 +1,4 @@
+//#include <Adafruit_ADXL343.h>
 #include <SPI.h>
 #include <Wire.h>
 #include "OLED_Driver.h"
@@ -8,6 +9,7 @@
 
 int flag = 0;
 int LED = 8;
+uint32_t FSRpin = 54;
 
 OLED_GFX oled = OLED_GFX();
 
@@ -21,10 +23,27 @@ void setup() {
     //setupOLED();
     //setupBluetooth();
     //setupAccel();
+    Serial.begin(9600);
+    analogReadResolution(12);
+    pinMode(52, OUTPUT);
 }
 
 void loop() {
-    //
+    while (1) {
+        if (Serial.available() > 0) {
+            char temp1 = Serial.read();
+            digitalWrite(52, HIGH);
+            delay(500);
+            uint32_t FSRread = analogRead(FSRpin);
+            float FSRfloat = ((float) FSRread / 4095.0) * 3.3;
+            Serial.print("FSR voltage:");
+            Serial.println(FSRfloat);
+            digitalWrite(52, LOW);
+            delay(500);
+        }
+        
+    }
+    
 }
 
 void setupOLED() {
