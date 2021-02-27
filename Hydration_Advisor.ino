@@ -25,7 +25,7 @@ void setup() {
     //setupBluetooth(); 
 }
 
-float mapFSR(float voltage, float vin) {
+float mapFSR(float voltage, float vin, float weight) {
     float mass;
     float volume;
     float bottleMass = 0.290;// bottle + puck
@@ -64,7 +64,7 @@ float mapFSR(float voltage, float vin) {
     //Serial.println(" N");
     mass = (fsrForce / 9.81) - bottleMass;
     volume = mass * 1000;
-    Serial.print("Calculated Volume: ");
+    //Serial.print("Calculated Volume: ");
     //Serial.print(volume);
     //Serial.println(" mL");
 
@@ -77,6 +77,8 @@ float mapFSR(float voltage, float vin) {
     Serial.print(fsrConductance);
     Serial.print(", ");
     Serial.print(fsrForce);
+    Serial.print(", ");
+    Serial.print(weight);
     Serial.print(", ");
     Serial.println(volume);
     return volume;
@@ -98,7 +100,8 @@ void loop() {
             voltageFSR = ((float)readFSR / (float)ADC_Scale) * 3.23;
             Serial.print("FSR Voltage: ");
             Serial.println(voltageFSR);
-            volume = mapFSR(voltageFSR, 3.23);
+            // Outputs: Vcc, voltage, resistance, conductance, force felt, actual weight, calculated volume
+            volume = mapFSR(voltageFSR, 3.23, weight);
             digitalWrite(pin_Vin, LOW);
             delay(500);
         }
