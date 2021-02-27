@@ -25,15 +25,15 @@ void setup() {
     //setupBluetooth(); 
 }
 
-float mapFSR(float voltage, float vin, float weight) {
+float mapFSR(float voltage, float vin) {
     float mass;
     float volume;
     float bottleMass = 0.290;// bottle + puck
     int R = 2000;//
     float Vcc = vin;//~3.3
     float fsrResistance;
-    float fsrConductance;
-    float constant = 11832.369;
+    double fsrConductance;
+    float constant = 11004.9;
     float fsrForce;
     //300g 2.71V
     //350g 2.75V
@@ -54,7 +54,7 @@ float mapFSR(float voltage, float vin, float weight) {
     //Serial.print("FSR Resistance: ");
     //Serial.print(fsrResistance);
     //Serial.println(" Ohms");
-    fsrConductance = 1 / fsrResistance;
+    fsrConductance = 1.0 / fsrResistance;
     //Serial.print("FSR Conductance: ");
     //Serial.print(fsrConductance);
     //Serial.println(" Ohms");
@@ -78,8 +78,8 @@ float mapFSR(float voltage, float vin, float weight) {
     Serial.print(", ");
     Serial.print(fsrForce);
     Serial.print(", ");
-    Serial.print(weight);
-    Serial.print(", ");
+    //Serial.print(weight);
+    //Serial.print(", ");
     Serial.println(volume);
     return volume;
 }
@@ -88,20 +88,22 @@ void loop() {
     uint32_t readFSR, readVin;
     float voltageFSR, voltageVin;
     float volume;
+    float weight;
 
     while (true) {
         if (Serial.available() > 0) {
-            char temp = Serial.read();
+            weight = Serial.parseFloat();
+            Serial.print(weight);
+            Serial.print(", ");
             digitalWrite(pin_Vin, HIGH);
             delay(500);
             // readVin = analogRead(pin_Vin);
             //voltageVin = (float)(readVin / ADC_Scale);// Connect Vin to A1/D55
             readFSR = analogRead(pin_FSR);
             voltageFSR = ((float)readFSR / (float)ADC_Scale) * 3.23;
-            Serial.print("FSR Voltage: ");
-            Serial.println(voltageFSR);
-            // Outputs: Vcc, voltage, resistance, conductance, force felt, actual weight, calculated volume
-            volume = mapFSR(voltageFSR, 3.23, weight);
+            //Serial.println(voltageFSR);
+            // Outputs: actual weight, Vcc, voltage, resistance, conductance, force felt, calculated volume
+            volume = mapFSR(voltageFSR, 3.23);
             digitalWrite(pin_Vin, LOW);
             delay(500);
         }
