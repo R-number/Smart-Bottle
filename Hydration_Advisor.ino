@@ -170,7 +170,6 @@ void setupAccel() {
 int loopAccel() {
     int weigh = 0;
     sensors_event_t event;
-    accel.getEvent(&event);
 
     /*          ^ Z
                 |
@@ -179,53 +178,42 @@ int loopAccel() {
               /
             /_ X
     */
-    int X1 = event.acceleration.x;
-    int Y1 = event.acceleration.y;
-    int Z1 = event.acceleration.z;
-
-    Serial.print("X1: ");
-    Serial.print(X1);
-    Serial.print(", ");
-
-    Serial.print("Y1: ");
-    Serial.print(Y1);
-    Serial.print(", ");
-
-    Serial.print("Z1: ");
-    Serial.print(Z1);
-    Serial.print("  ");
-
-    Serial.print("  m/s^2   ");
-
-    delay(1000);
+    int X[5];
+    int Y[5];
+    int Z[5];
+    int Xdiff;
+    int Ydiff;
+    int Zdiff;
+    int stationary;
 
     accel.getEvent(&event);
+    X[0] = event.acceleration.x;
+    Y[0] = event.acceleration.y;
+    Z[0] = event.acceleration.z;
 
-    int X2 = event.acceleration.x;
-    int Y2 = event.acceleration.y;
-    int Z2 = event.acceleration.z;
+    for (int i = 1; i < 5; i++) {
+        accel.getEvent(&event);
+        X[i] = event.acceleration.x;
+        Y[i] = event.acceleration.y;
+        Z[i] = event.acceleration.z;
 
-    Serial.print("X2: ");
-    Serial.print(X2);
-    Serial.print(", ");
+        Xdiff = X[i] - X[i - 1];
+        Ydiff = Y[i] - Y[i - 1];
+        Zdiff = Z[i] - Z[i - 1];
 
-    Serial.print("Y2: ");
-    Serial.print(Y2);
-    Serial.print(", ");
+        if (!Xdiff && !Ydiff && !Zdiff) {
+            stationary = 1;
+        }
+        else {
+            stationary = 0;
+            break;
+        }
+        delay(400);
+    }
 
-    Serial.print("Z2: ");
-    Serial.print(Z2);
-    Serial.print("  ");
-
-    Serial.print("  m/s^2   ");
-
-    int X = X2 - X1;
-    int Y = Y2 - Y1;
-    int Z = Z2 - Z1;
-
-    if (!X && !Y && !Z) {
+    if (stationary) {
         Serial.print("Stationary, ");
-        if ((X1 == 0) && (Y1 == 0) && (Z1 == 9)) {
+        if ((X[4] == 0) && (Y[4] == 0) && (Z[4] == 9)) {
             Serial.println("Upright");
             weigh = 1;
         }
