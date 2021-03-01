@@ -29,18 +29,33 @@ void setup() {
 
 void loop() {
     float volume;
-    float input;
-    int weigh;
+    uint8_t accel;
+    uint8_t text[] = "Hello World!";
 
+    // Most likely need RTC to track display time.
     if (Serial.available() > 0) {
-        float input = Serial.parseFloat();
-
-        weigh = readAccel();
-        if (weigh) {
+        accel = readAccel();
+        if (accel == 2) {
             volume = readFSR();
+            uint8_t text[] = "Hello World!";
         }
-        else {
-            Serial.println("Weight not measured!");
+        else if (accel == 1)
+            uint8_t text[] = "Not level!";
+
+        if (accel == 0) {
+            oled.Clear_Screen();
+        }
+        else if (accel == 1) {
+            oled.Clear_Screen();
+            uint8_t text[] = "Not level!";
+            oled.Set_Color(BLUE);
+            oled.print_String(20, 50, text, FONT_5X8);
+        }
+        else if (accel == 0) {
+            oled.Clear_Screen();
+            uint8_t text[] = "Not level!";
+            oled.Set_Color(BLUE);
+            oled.print_String(20, 50, text, FONT_5X8);
         }
     }
 }
@@ -103,14 +118,33 @@ float readFSR() {
     return volume;
 }
 
-int readAccel() {
-    int weigh = 0;
+uint8_t readAccel() {
     sensors_event_t event;
+    int x, y, z;
+    int i;
+    bool isStationary = true;
+
     accel.getEvent(&event);
-    
-    int X1 = event.acceleration.x;
-    int Y1 = event.acceleration.y;
-    int Z1 = event.acceleration.z;
+    x = event.acceleration.x;
+    y = event.acceleration.y;
+    z = event.acceleration.z;
+    for (i = 1; i < 5; i++) {
+        accel.getEvent(&event);
+        if ((x != event.acceleration.x) || (y != event.acceleration.y) || (z != event.acceleration.z))
+            isStationary = false;
+        x = event.acceleration.x;
+        y = event.acceleration.y;
+        z = event.acceleration.z;
+        delay(400);
+    }
+    if (isStationary) {
+        if ((x == 0) && (y == 0) && (z == 9))
+            return 2;// Stationary and Orientated
+        else
+            return 1;// Stationary and Tilted
+    }
+    else
+        return 0;// Not Stationary
 
     /*Serial.print("X1: ");
     Serial.print(X1);
@@ -129,47 +163,6 @@ int readAccel() {
               /
             /_ X
     */
-
-    delay(1000);
-
-    accel.getEvent(&event);
-
-    int X2 = event.acceleration.x;
-    int Y2 = event.acceleration.y;
-    int Z2 = event.acceleration.z;
-
-    Serial.print("X2: ");
-    Serial.print(X2);
-    Serial.print(", ");
-
-    Serial.print("Y2: ");
-    Serial.print(Y2);
-    Serial.print(", ");
-
-    Serial.print("Z2: ");
-    Serial.print(Z2);
-    Serial.print("  ");
-
-    Serial.print("  m/s^2   ");
-
-    int X = X2 - X1;
-    int Y = Y2 - Y1;
-    int Z = Z2 - Z1;
-
-    if (!X && !Y && !Z) {
-        Serial.print("Stationary, ");
-        if ((X1 == 0) && (Y1 == 0) && (Z1 == 9)) {
-            Serial.println("Upright");
-            weigh = 1;
-        }
-        else {
-            Serial.println("Tilted");
-        }
-    }
-    else {
-        Serial.println("Moving");
-    }
-    return weigh;
 }
 
 void loopBluetooth() {
