@@ -52,8 +52,10 @@ void loop() {
             oled.print_String(20, 50, text, FONT_5X8);
         }
         else if (accel == 0) {
+            volume = readFSR();
             oled.Clear_Screen();
-            uint8_t text[] = "Not level!";
+            uint8_t text[10];
+            sprintf((char*)text, "%f", volume);
             oled.Set_Color(BLUE);
             oled.print_String(20, 50, text, FONT_5X8);
         }
