@@ -19,11 +19,11 @@ char daysOfTheWeek[7][12] = { "Sunday", "Monday", "Tuesday", "Wednesday", "Thurs
 
 void setup() {
     Serial.begin(115200);
+    
     setupFSR();
-
     //setupRTC();
     setupAccel();
-    //setupOLED();
+    setupOLED();
     //setupBluetooth(); 
 }
 
@@ -35,21 +35,14 @@ void loop() {
     if (Serial.available() > 0) {
         float input = Serial.parseFloat();
 
-        weigh = loopAccel();
+        weigh = readAccel();
         if (weigh) {
             volume = readFSR();
         }
         else {
-            Serial.println("Weight not measured");
+            Serial.println("Weight not measured!");
         }
     }
-}
-
-void setupFSR() {
-    Serial.begin(9600);
-    pinMode(54, INPUT);
-    pinMode(52, OUTPUT);
-    analogReadResolution(12);
 }
 
 float readFSR() {
@@ -59,9 +52,9 @@ float readFSR() {
     float volume;
     float weight;
     float mass;
-    float bottleMass = 0.290;// bottle + puck
-    int R = 2000;//
-    float Vcc = 3.23;//~3.3
+    float bottleMass = 0.290;// Bottle + Puck
+    int R = 2000;
+    float Vcc = 3.23;
     float fsrResistance;
     double fsrConductance;
     float constant = 11004.9;
@@ -71,60 +64,18 @@ float readFSR() {
     delay(500);
     // readVin = analogRead(pin_Vin);
     //voltageVin = (float)(readVin / ADC_Scale);// Connect Vin to A1/D55
+
     readFSR = analogRead(54);
     voltageFSR = ((float)readFSR / 4095.0) * Vcc;
-    Serial.print("Voltage: ");
-    Serial.print(voltageFSR);
-    // Outputs: actual weight, Vcc, voltage, resistance, conductance, force felt, calculated volume
-
-    //300g 2.71V
-    //350g 2.75V
-    //400g 2.79V
-    //450g 2.83V
-    //500g 2.86V
-
-    //2k
-    //1.2 to 1.8
-
-    //Serial.print("Vcc: ");
-    //Serial.print(Vcc);
-    //Serial.println(" V");
     //Serial.print("Voltage: ");
-    //Serial.print(voltage);
-    //Serial.println(" V");
-    fsrResistance = ((Vcc * R) / voltageFSR) - R;
-    //Serial.print("FSR Resistance: ");
-    //Serial.print(fsrResistance);
-    //Serial.println(" Ohms");
+    //Serial.print(voltageFSR);
+
+    // Accurate calculation, rigid and uniform container needed.
+    /*fsrResistance = ((Vcc * R) / voltageFSR) - R;
     fsrConductance = 1.0 / fsrResistance;
-    Serial.print("     Resistance: ");
-    Serial.print(fsrResistance);
-    //Serial.print("FSR Conductance: ");
-    //Serial.print(fsrConductance);
-    //Serial.println(" Ohms");
-    //fsrForce = fsrConductance * constant;
-    //Serial.print("FSR Force: ");
-    //Serial.print(fsrForce);
-    //Serial.println(" N");
-    //mass = (fsrForce / 9.81) - bottleMass;
-    //volume = mass * 1000;
-    //Serial.print("Calculated Volume: ");
-    //Serial.print(volume);
-    //Serial.println(" mL");
-    /*
-    Serial.print(Vcc);
-    Serial.print(", ");
-    Serial.print(voltage);
-    Serial.print(", ");
-    Serial.print(fsrResistance);
-    Serial.print(", ");
-    Serial.print(fsrConductance);
-    Serial.print(", ");
-    Serial.print(fsrForce);
-    Serial.print(", ");
-    //Serial.print(weight);
-    //Serial.print(", ");
-    Serial.println(volume); */
+    fsrForce = fsrConductance * constant;
+    mass = (fsrForce / 9.81) - bottleMass;
+    volume = mass * 1000;*/
 
     if (voltageFSR < 1.05) {
         volume = 0;
@@ -144,33 +95,33 @@ float readFSR() {
     else {
         volume = 500;
     }
+    //Serial.print("Volume: ");
+    //Serial.println(volume);
 
-    Serial.print("      Volume: ");
-    Serial.println(volume);
     digitalWrite(52, LOW);
-    delay(500);
 
     return volume;
 }
 
-void setupAccel() {
-    Serial.println();
-
-    //ACCEL
-    Serial.println("ACCEL - wire.begin ====");
-    Wire.begin();
-    if (!accel.begin())
-    {
-        Serial.println("No valid sensor found");
-        while (1);
-    }
-}
-
-int loopAccel() {
+int readAccel() {
     int weigh = 0;
     sensors_event_t event;
     accel.getEvent(&event);
+    
+    int X1 = event.acceleration.x;
+    int Y1 = event.acceleration.y;
+    int Z1 = event.acceleration.z;
 
+    /*Serial.print("X1: ");
+    Serial.print(X1);
+    Serial.print(", ");
+    Serial.print("Y1: ");
+    Serial.print(Y1);
+    Serial.print(", ");
+    Serial.print("Z1: ");
+    Serial.print(Z1);
+    Serial.print("  ");
+    Serial.print("  m/s^2   ");*/
     /*          ^ Z
                 |
                 + - - > Y
@@ -178,23 +129,6 @@ int loopAccel() {
               /
             /_ X
     */
-    int X1 = event.acceleration.x;
-    int Y1 = event.acceleration.y;
-    int Z1 = event.acceleration.z;
-
-    Serial.print("X1: ");
-    Serial.print(X1);
-    Serial.print(", ");
-
-    Serial.print("Y1: ");
-    Serial.print(Y1);
-    Serial.print(", ");
-
-    Serial.print("Z1: ");
-    Serial.print(Z1);
-    Serial.print("  ");
-
-    Serial.print("  m/s^2   ");
 
     delay(1000);
 
@@ -238,80 +172,6 @@ int loopAccel() {
     return weigh;
 }
 
-void setupOLED() {
-    //Init GPIO
-    pinMode(oled_cs, OUTPUT);
-    pinMode(oled_rst, OUTPUT);
-    pinMode(oled_dc, OUTPUT);
-
-#if INTERFACE_4WIRE_SPI
-    //Init SPI
-    SPI.setDataMode(SPI_MODE0);
-    SPI.setBitOrder(MSBFIRST);
-    SPI.setClockDivider(SPI_CLOCK_DIV2);
-    SPI.begin();
-
-#elif INTERFACE_3WIRE_SPI
-    pinMode(oled_sck, OUTPUT);
-    pinMode(oled_din, OUTPUT);
-
-#endif
-
-    oled.Device_Init();
-
-    oled.Display_Interface();
-    delay(3000);
-
-    oled.Clear_Screen();
-    uint8_t text[] = "Hello World !";
-    oled.Set_Color(BLUE);
-    oled.print_String(20, 50, text, FONT_5X8);
-    delay(2000);
-    oled.Clear_Screen();
-
-    oled.Set_Color(WHITE);
-    oled.Draw_Pixel(50, 50);
-    delay(1000);
-
-    lcdTestPattern();
-    delay(1000);
-
-    testlines();
-    delay(1000);
-
-    testfastlines();
-    delay(1000);
-
-    testdrawrects();
-    delay(1000);
-
-    testfillrects(BLUE, YELLOW);
-    delay(1000);
-
-
-    oled.Clear_Screen();
-    testfillcircles(63, BLUE);
-    delay(500);
-    testdrawcircles(WHITE);
-    delay(1000);
-
-    testroundrects();
-    delay(1000);
-
-    testtriangles();
-    delay(1000);
-
-    // oled.Fill_Color(BLUE);
-}
-
-void setupBluetooth() {
-    Serial1.begin(9600);
-    pinMode(LED, OUTPUT);
-    Serial.println("Ready to connect\nDefualt password is 1234 or 000");
-}
-
-
-
 void loopBluetooth() {
     if (Serial1.available())
         flag = Serial1.read();
@@ -351,7 +211,95 @@ void loopRTC() {
     //Serial.print("s = ");
     //Serial.print(now.unixtime() / 86400L);
     //Serial.println("d");
+}
 
+void setupFSR() {
+    Serial.begin(9600);
+    pinMode(54, INPUT);
+    pinMode(52, OUTPUT);
+    analogReadResolution(12);
+}
+
+void setupAccel() {
+    Serial.println();
+
+    //ACCEL
+    Serial.println("Accelerometer: Wire.begin");
+    Wire.begin();
+    if (!accel.begin())
+    {
+        Serial.println("Accelerometer: Not found!");
+        while (1);
+    }
+}
+
+void setupOLED() {
+    //Init GPIO
+    pinMode(oled_cs, OUTPUT);
+    pinMode(oled_rst, OUTPUT);
+    pinMode(oled_dc, OUTPUT);
+
+#if INTERFACE_4WIRE_SPI
+    //Init SPI
+    SPI.setDataMode(SPI_MODE0);
+    SPI.setBitOrder(MSBFIRST);
+    SPI.setClockDivider(SPI_CLOCK_DIV2);
+    SPI.begin();
+
+#elif INTERFACE_3WIRE_SPI
+    pinMode(oled_sck, OUTPUT);
+    pinMode(oled_din, OUTPUT);
+
+#endif
+
+    oled.Device_Init();
+    oled.Display_Interface();
+
+    /*delay(3000);
+
+    oled.Clear_Screen();
+    uint8_t text[] = "Hello World!";
+    oled.Set_Color(BLUE);
+    oled.print_String(20, 50, text, FONT_5X8);
+    delay(2000);
+    oled.Clear_Screen();
+    oled.Set_Color(WHITE);
+    oled.Draw_Pixel(50, 50);
+    delay(1000);
+
+    lcdTestPattern();
+    delay(1000);
+
+    testlines();
+    delay(1000);
+
+    testfastlines();
+    delay(1000);
+
+    testdrawrects();
+    delay(1000);
+
+    testfillrects(BLUE, YELLOW);
+    delay(1000);
+
+
+    oled.Clear_Screen();
+    testfillcircles(63, BLUE);
+    delay(500);
+    testdrawcircles(WHITE);
+    delay(1000);
+
+    testroundrects();
+    delay(1000);
+
+    testtriangles();
+    delay(1000);*/
+}
+
+void setupBluetooth() {
+    Serial1.begin(9600);
+    pinMode(LED, OUTPUT);
+    Serial.println("Ready to connect\nDefualt password is 1234 or 000");
 }
 
 void testlines(void) {
