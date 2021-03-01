@@ -19,31 +19,130 @@ RTC_DS3231 rtc;
 char daysOfTheWeek[7][12] = { "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday" };
 
 void setup() {
-    //Serial.begin(115200);
-    //setupOLED();
-    //setupBluetooth();
+    Serial.begin(115200);
+    setupFSR();
+
+    //setupRTC();
     //setupAccel();
-    Serial.begin(9600);
-    analogReadResolution(12);
-    pinMode(52, OUTPUT);
+    //setupOLED();
+    //setupBluetooth(); 
+}
+
+float mapFSR(float voltage, float vin) {
+    float mass;
+    float volume;
+    float bottleMass = 0.290;// bottle + puck
+    int R = 2000;//
+    float Vcc = vin;//~3.3
+    float fsrResistance;
+    double fsrConductance;
+    float constant = 11004.9;
+    float fsrForce;
+    //300g 2.71V
+    //350g 2.75V
+    //400g 2.79V
+    //450g 2.83V
+    //500g 2.86V
+
+    //2k
+    //1.2 to 1.8
+ 
+    //Serial.print("Vcc: ");
+    //Serial.print(Vcc);
+    //Serial.println(" V");
+    //Serial.print("Voltage: ");
+    //Serial.print(voltage);
+    //Serial.println(" V");
+    fsrResistance = ((Vcc * R) / voltage) - R;
+    //Serial.print("FSR Resistance: ");
+    //Serial.print(fsrResistance);
+    //Serial.println(" Ohms");
+    fsrConductance = 1.0 / fsrResistance;
+    Serial.print("     Resistance: ");
+    Serial.print(fsrResistance);
+    //Serial.print("FSR Conductance: ");
+    //Serial.print(fsrConductance);
+    //Serial.println(" Ohms");
+    //fsrForce = fsrConductance * constant;
+    //Serial.print("FSR Force: ");
+    //Serial.print(fsrForce);
+    //Serial.println(" N");
+    //mass = (fsrForce / 9.81) - bottleMass;
+    //volume = mass * 1000;
+    //Serial.print("Calculated Volume: ");
+    //Serial.print(volume);
+    //Serial.println(" mL");
+    /*
+    Serial.print(Vcc);
+    Serial.print(", ");
+    Serial.print(voltage);
+    Serial.print(", ");
+    Serial.print(fsrResistance);
+    Serial.print(", ");
+    Serial.print(fsrConductance);
+    Serial.print(", ");
+    Serial.print(fsrForce);
+    Serial.print(", ");
+    //Serial.print(weight);
+    //Serial.print(", ");
+    Serial.println(volume); */
+
+    if (voltage < 1.05) {
+        volume = 0;
+    }
+    else if (voltage <= 1.26) {
+        volume = 100;
+    }
+    else if (voltage <= 1.34) {
+        volume = 200;
+    }
+    else if (voltage <= 1.44) {
+        volume = 300;
+    }
+    else if (voltage < 1.54) {
+        volume = 400;
+    }
+    else {
+        volume = 500;
+    }
+
+    return volume;
 }
 
 void loop() {
-    while (1) {
+    uint32_t readFSR, readVin;
+    float voltageFSR, voltageVin;
+    float volume;
+    float weight;
+
+    while (true) {
         if (Serial.available() > 0) {
-            char temp1 = Serial.read();
+            weight = Serial.parseFloat();
+            Serial.print(weight);
+            Serial.print(", ");
             digitalWrite(52, HIGH);
             delay(500);
-            uint32_t FSRread = analogRead(FSRpin);
-            float FSRfloat = ((float) FSRread / 4095.0) * 3.229;
-            Serial.print("FSR voltage:");
-            Serial.println(FSRfloat);
+            // readVin = analogRead(pin_Vin);
+            //voltageVin = (float)(readVin / ADC_Scale);// Connect Vin to A1/D55
+            readFSR = analogRead(54);
+            voltageFSR = ((float)readFSR / 4095.0) * 3.23;
+            Serial.print("Voltage: ");
+            Serial.print(voltageFSR);
+            // Outputs: actual weight, Vcc, voltage, resistance, conductance, force felt, calculated volume
+            volume = mapFSR(voltageFSR, 3.23);
+            Serial.print("      Volume: ");
+            Serial.println(volume);
             digitalWrite(52, LOW);
             delay(500);
         }
-        
     }
-    
+}
+
+void setupFSR() {
+    Serial.begin(9600);
+    pinMode(54, INPUT);
+    pinMode(52, OUTPUT);
+    analogReadResolution(12);
 }
 
 void setupOLED() {
