@@ -1,4 +1,3 @@
-//#include <Adafruit_ADXL343.h>
 #include <SPI.h>
 #include <Wire.h>
 #include "OLED_Driver.h"
