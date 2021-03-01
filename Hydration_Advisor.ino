@@ -23,21 +23,61 @@ void setup() {
     setupFSR();
 
     //setupRTC();
-    //setupAccel();
+    setupAccel();
     //setupOLED();
     //setupBluetooth(); 
 }
 
-float mapFSR(float voltage, float vin) {
-    float mass;
+void loop() {
     float volume;
+    float input;
+    int weigh;
+
+    if (Serial.available() > 0) {
+        float input = Serial.parseFloat();
+
+        weigh = loopAccel();
+        if (weigh) {
+            volume = readFSR();
+        }
+        else {
+            Serial.println("Weight not measured");
+        }
+    }
+}
+
+void setupFSR() {
+    Serial.begin(9600);
+    pinMode(54, INPUT);
+    pinMode(52, OUTPUT);
+    analogReadResolution(12);
+}
+
+float readFSR() {
+
+    uint32_t readFSR, readVin;
+    float voltageFSR, voltageVin;
+    float volume;
+    float weight;
+    float mass;
     float bottleMass = 0.290;// bottle + puck
     int R = 2000;//
-    float Vcc = vin;//~3.3
+    float Vcc = 3.23;//~3.3
     float fsrResistance;
     double fsrConductance;
     float constant = 11004.9;
     float fsrForce;
+
+    digitalWrite(52, HIGH);
+    delay(500);
+    // readVin = analogRead(pin_Vin);
+    //voltageVin = (float)(readVin / ADC_Scale);// Connect Vin to A1/D55
+    readFSR = analogRead(54);
+    voltageFSR = ((float)readFSR / 4095.0) * Vcc;
+    Serial.print("Voltage: ");
+    Serial.print(voltageFSR);
+    // Outputs: actual weight, Vcc, voltage, resistance, conductance, force felt, calculated volume
+
     //300g 2.71V
     //350g 2.75V
     //400g 2.79V
@@ -46,14 +86,14 @@ float mapFSR(float voltage, float vin) {
 
     //2k
     //1.2 to 1.8
- 
+
     //Serial.print("Vcc: ");
     //Serial.print(Vcc);
     //Serial.println(" V");
     //Serial.print("Voltage: ");
     //Serial.print(voltage);
     //Serial.println(" V");
-    fsrResistance = ((Vcc * R) / voltage) - R;
+    fsrResistance = ((Vcc * R) / voltageFSR) - R;
     //Serial.print("FSR Resistance: ");
     //Serial.print(fsrResistance);
     //Serial.println(" Ohms");
@@ -87,62 +127,116 @@ float mapFSR(float voltage, float vin) {
     //Serial.print(", ");
     Serial.println(volume); */
 
-    if (voltage < 1.05) {
+    if (voltageFSR < 1.05) {
         volume = 0;
     }
-    else if (voltage <= 1.26) {
+    else if (voltageFSR <= 1.26) {
         volume = 100;
     }
-    else if (voltage <= 1.34) {
+    else if (voltageFSR <= 1.34) {
         volume = 200;
     }
-    else if (voltage <= 1.44) {
+    else if (voltageFSR <= 1.44) {
         volume = 300;
     }
-    else if (voltage < 1.54) {
+    else if (voltageFSR < 1.54) {
         volume = 400;
     }
     else {
         volume = 500;
     }
 
+    Serial.print("      Volume: ");
+    Serial.println(volume);
+    digitalWrite(52, LOW);
+    delay(500);
+
     return volume;
 }
 
-void loop() {
-    uint32_t readFSR, readVin;
-    float voltageFSR, voltageVin;
-    float volume;
-    float weight;
+void setupAccel() {
+    Serial.println();
 
-    while (true) {
-        if (Serial.available() > 0) {
-            weight = Serial.parseFloat();
-            Serial.print(weight);
-            Serial.print(", ");
-            digitalWrite(52, HIGH);
-            delay(500);
-            // readVin = analogRead(pin_Vin);
-            //voltageVin = (float)(readVin / ADC_Scale);// Connect Vin to A1/D55
-            readFSR = analogRead(54);
-            voltageFSR = ((float)readFSR / 4095.0) * 3.23;
-            Serial.print("Voltage: ");
-            Serial.print(voltageFSR);
-            // Outputs: actual weight, Vcc, voltage, resistance, conductance, force felt, calculated volume
-            volume = mapFSR(voltageFSR, 3.23);
-            Serial.print("      Volume: ");
-            Serial.println(volume);
-            digitalWrite(52, LOW);
-            delay(500);
-        }
+    //ACCEL
+    Serial.println("ACCEL - wire.begin ====");
+    Wire.begin();
+    if (!accel.begin())
+    {
+        Serial.println("No valid sensor found");
+        while (1);
     }
 }
 
-void setupFSR() {
-    Serial.begin(9600);
-    pinMode(54, INPUT);
-    pinMode(52, OUTPUT);
-    analogReadResolution(12);
+int loopAccel() {
+    int weigh = 0;
+    sensors_event_t event;
+    accel.getEvent(&event);
+
+    /*          ^ Z
+                |
+                + - - > Y
+               /
+              /
+            /_ X
+    */
+    int X1 = event.acceleration.x;
+    int Y1 = event.acceleration.y;
+    int Z1 = event.acceleration.z;
+
+    Serial.print("X1: ");
+    Serial.print(X1);
+    Serial.print(", ");
+
+    Serial.print("Y1: ");
+    Serial.print(Y1);
+    Serial.print(", ");
+
+    Serial.print("Z1: ");
+    Serial.print(Z1);
+    Serial.print("  ");
+
+    Serial.print("  m/s^2   ");
+
+    delay(1000);
+
+    accel.getEvent(&event);
+
+    int X2 = event.acceleration.x;
+    int Y2 = event.acceleration.y;
+    int Z2 = event.acceleration.z;
+
+    Serial.print("X2: ");
+    Serial.print(X2);
+    Serial.print(", ");
+
+    Serial.print("Y2: ");
+    Serial.print(Y2);
+    Serial.print(", ");
+
+    Serial.print("Z2: ");
+    Serial.print(Z2);
+    Serial.print("  ");
+
+    Serial.print("  m/s^2   ");
+
+    int X = X2 - X1;
+    int Y = Y2 - Y1;
+    int Z = Z2 - Z1;
+
+    if (!X && !Y && !Z) {
+        Serial.print("Stationary, ");
+        if ((X1 == 0) && (Y1 == 0) && (Z1 == 9)) {
+            Serial.println("Upright");
+            weigh = 1;
+        }
+        else {
+            Serial.println("Tilted");
+        }
+    }
+    else {
+        Serial.println("Moving");
+    }
+    return weigh;
 }
 
 void setupOLED() {
@@ -217,28 +311,7 @@ void setupBluetooth() {
     Serial.println("Ready to connect\nDefualt password is 1234 or 000");
 }
 
-void setupAccel() {
-    Serial.println();
 
-    //ACCEL
-    Serial.println("ACCEL - wire.begin ====");
-    Wire.begin();
-    if (!accel.begin())
-    {
-        Serial.println("No valid sensor found");
-        while (1);
-    }
-}
-
-void loopAccel() {
-    sensors_event_t event;
-    accel.getEvent(&event);
-    Serial.print("X: "); Serial.print((int) event.acceleration.x); Serial.print("");// Did not like float.
-    Serial.print("Y: "); Serial.print((int) event.acceleration.y); Serial.print("");
-    Serial.print("Z: "); Serial.print((int) event.acceleration.z); Serial.print("");
-    Serial.println("m/s^2 ");
-    delay(500);
-}
 
 void loopBluetooth() {
     if (Serial1.available())
