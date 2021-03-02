@@ -15,13 +15,47 @@
 Adafruit_ADXL345_Unified accel = Adafruit_ADXL345_Unified();
 RTC_DS3231 rtc;
 
+DateTime devTime(2021, 3, 2, 21, 0, 0);
+
+void loop() {
+    float volume;
+    float input;
+    uint8_t accel;
+    char text[] = "Hello World!";
+
+    // Most likely need RTC to track display time.
+    if (Serial.available() > 0) {
+        input = Serial.parseFloat();
+        accel = readAccel();
+
+        if (accel == 0) {
+            oled.fillScreen(BLACK);
+        }
+        else if (accel == 1) {
+            oled.fillScreen(BLACK);
+            char text[] = "Not level!";
+            oled.setTextColor(BLUE);
+            oled.setCursor(0, 0);
+            oled.print(text);
+        }
+        else if (accel == 2) {
+            volume = readFSR();
+            oled.fillScreen(BLACK);
+            char text[10];
+            sprintf((char*)text, "%f", volume);
+            oled.setTextColor(BLUE);
+            oled.setCursor(0, 0);
+            oled.print(text);
+        }
+    }
+}
+
 void setup() {
     Serial.begin(115200);
     setupFSR();
-
-    //setupRTC();
+    setupRTC(devTime);
     setupAccel();
-    //setupOLED();
+    setupOLED();
     //setupBluetooth(); 
 }
 
@@ -41,13 +75,17 @@ float readFSR() {
     float fsrForce;
 
     digitalWrite(52, HIGH);
-    delay(500);
+    delay(250);
     // readVin = analogRead(pin_Vin);
     //voltageVin = (float)(readVin / ADC_Scale);// Connect Vin to A1/D55
     readFSR = analogRead(54);
     voltageFSR = ((float)readFSR / ADC_Scale) * Vcc;
-    fsrResistance = ((Vcc * R) / voltageFSR) - R;
+
+    /*fsrResistance = ((Vcc * R) / voltageFSR) - R;
     fsrConductance = 1.0 / fsrResistance;
+    fsrForce = fsrConductance * constant;
+    mass = (fsrForce / 9.81) - bottleMass;
+    volume = mass * 1000;*/
 
     if (voltageFSR < 1.05) {
         volume = 0;
@@ -67,52 +105,22 @@ float readFSR() {
     else {
         volume = 500;
     }
-
-    Serial.print("      Volume: ");
-    Serial.println(volume);
     digitalWrite(52, LOW);
-    delay(500);
 
     return volume;
-}
-
-void loop() {
-    uint32_t readFSR, readVin;
-    float voltageFSR, voltageVin;
-    float volume;
-    float weight;
-
-    while (true) {
-        if (Serial.available() > 0) {
-            weight = Serial.parseFloat();
-            Serial.print(weight);
-            Serial.print(", ");
-            digitalWrite(pin_Vin, HIGH);
-            delay(500);
-            // readVin = analogRead(pin_Vin);
-            //voltageVin = (float)(readVin / ADC_Scale);// Connect Vin to A1/D55
-            readFSR = analogRead(pin_FSR);
-            voltageFSR = ((float)readFSR / (float)ADC_Scale) * 3.23;
-            //Serial.println(voltageFSR);
-            // Outputs: actual weight, Vcc, voltage, resistance, conductance, force felt, calculated volume
-            volume = mapFSR(voltageFSR, 3.23);
-            digitalWrite(pin_Vin, LOW);
-            delay(500);
-        }
-    }
 }
 
 void setupFSR() {
     Serial.begin(9600);
     pinMode(pin_FSR, INPUT);
     pinMode(pin_Vin, OUTPUT);
-    analogReadResolution(12);
+    analogReadResolution(ADC_Word);
 }
 
-void setupRTC() {
-    //SDA1, SCL1
-    //pinMode(?, ?)
-    //pinMode(?, ?)
+void setupRTC(DateTime currentTime) {
+    rtc.begin();
+    rtc.adjust(currentTime);
+    return;
 }
 
 void setupBluetooth() {
