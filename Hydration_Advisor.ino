@@ -28,7 +28,8 @@ void setup() {
 
     setupRTC();
 
-    //setupOLED();
+    setupOLED();
+
     //setupBluetooth(); 
 }
 
@@ -49,7 +50,7 @@ void loop() {
             Serial.println("Weight not measured");
         }*/
 
-        loopRTC();
+        //loopRTC();
     }
 }
 
