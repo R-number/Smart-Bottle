@@ -16,14 +16,18 @@ OLED_GFX oled = OLED_GFX();
 Adafruit_ADXL345_Unified accel = Adafruit_ADXL345_Unified();
 
 RTC_DS3231 rtc;
+DateTime currentTime(2021,3,2,13,40,0);
+
 char daysOfTheWeek[7][12] = { "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday" };
 
 void setup() {
     Serial.begin(115200);
     setupFSR();
 
-    //setupRTC();
     setupAccel();
+
+    setupRTC();
+
     //setupOLED();
     //setupBluetooth(); 
 }
@@ -32,17 +36,20 @@ void loop() {
     float volume;
     float input;
     int weigh;
+    DateTime time = rtc.now();
 
     if (Serial.available() > 0) {
         float input = Serial.parseFloat();
-
+        /*
         weigh = loopAccel();
         if (weigh) {
             volume = readFSR();
         }
         else {
             Serial.println("Weight not measured");
-        }
+        }*/
+
+        loopRTC();
     }
 }
 
@@ -227,6 +234,38 @@ int loopAccel() {
     return weigh;
 }
 
+void setupRTC() {
+    rtc.begin();
+    rtc.adjust(currentTime);
+    return;
+}
+
+void loopRTC() {
+    DateTime now = rtc.now();
+
+    Serial.print(now.year(), DEC);
+    Serial.print('/');
+    Serial.print(now.month(), DEC);
+    Serial.print('/');
+    Serial.print(now.day(), DEC);
+    Serial.print(" ");
+    //Serial.print(daysOfTheWeek[now.dayOfTheWeek()]);
+    //Serial.print(") ");
+    Serial.print(now.hour(), DEC);
+    Serial.print(':');
+    Serial.print(now.minute(), DEC);
+    Serial.print(':');
+    Serial.print(now.second(), DEC);
+    Serial.println();
+
+    //Serial.print(" since midnight 1/1/1970 = ");
+    //Serial.print(now.unixtime());
+    //Serial.print("s = ");
+    //Serial.print(now.unixtime() / 86400L);
+    //Serial.println("d");
+
+}
+
 void setupOLED() {
     //Init GPIO
     pinMode(oled_cs, OUTPUT);
@@ -315,32 +354,6 @@ void loopBluetooth() {
 
     //if (Serial.available())
         //Serial1.write(Serial.read());
-}
-
-void loopRTC() {
-    DateTime now = rtc.now();
-
-    Serial.print(now.year(), DEC);
-    Serial.print('/');
-    Serial.print(now.month(), DEC);
-    Serial.print('/');
-    Serial.print(now.day(), DEC);
-    Serial.print(" (");
-    Serial.print(daysOfTheWeek[now.dayOfTheWeek()]);
-    Serial.print(") ");
-    Serial.print(now.hour(), DEC);
-    Serial.print(':');
-    Serial.print(now.minute(), DEC);
-    Serial.print(':');
-    Serial.print(now.second(), DEC);
-    Serial.println();
-
-    //Serial.print(" since midnight 1/1/1970 = ");
-    //Serial.print(now.unixtime());
-    //Serial.print("s = ");
-    //Serial.print(now.unixtime() / 86400L);
-    //Serial.println("d");
-
 }
 
 void testlines(void) {
