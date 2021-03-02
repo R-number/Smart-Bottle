@@ -35,12 +35,6 @@ void loop() {
     // Most likely need RTC to track display time.
     if (Serial.available() > 0) {
         accel = readAccel();
-        if (accel == 2) {
-            volume = readFSR();
-            uint8_t text[] = "Hello World!";
-        }
-        else if (accel == 1)
-            uint8_t text[] = "Not level!";
 
         if (accel == 0) {
             oled.Clear_Screen();
@@ -51,7 +45,7 @@ void loop() {
             oled.Set_Color(BLUE);
             oled.print_String(20, 50, text, FONT_5X8);
         }
-        else if (accel == 0) {
+        else if (accel == 2) {
             volume = readFSR();
             oled.Clear_Screen();
             uint8_t text[10];
