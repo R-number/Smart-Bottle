@@ -47,7 +47,7 @@ char daysOfTheWeek[7][12] = { "Sunday", "Monday", "Tuesday", "Wednesday", "Thurs
 #define YELLOW          0xFFE0  
 #define WHITE           0xFFFF
 
-Adafruit_SSD1351 tft = Adafruit_SSD1351(SCREEN_WIDTH, SCREEN_HEIGHT, &SPI, CS_PIN, DC_PIN, RST_PIN);
+Adafruit_SSD1351 oled = Adafruit_SSD1351(SCREEN_WIDTH, SCREEN_HEIGHT, &SPI, CS_PIN, DC_PIN, RST_PIN);
 
 float p = 3.1415926;
 
@@ -65,7 +65,7 @@ void setup() {
 }
 
 void loop() {
-    float volume;
+    /*float volume;
     float input;
     int weigh;
     DateTime time = rtc.now();
@@ -79,10 +79,41 @@ void loop() {
         }
         else {
             Serial.println("Weight not measured");
-        }*/
+        }
 
         //loopRTC();
         loopOLED();
+    }*/
+
+    float volume;
+    float input;
+    uint8_t accel;
+    char text[] = "Hello World!";
+
+    // Most likely need RTC to track display time.
+    if (Serial.available() > 0) {
+        input = Serial.parseFloat();
+        accel = readAccel();
+
+        if (accel == 0) {
+            oled.fillScreen(BLACK);
+        }
+        else if (accel == 1) {
+            oled.fillScreen(BLACK);
+            char text[] = "Not level!";
+            oled.setTextColor(BLUE);
+            oled.setCursor(0, 0);
+            oled.print(text);
+        }
+        else if (accel == 2) {
+            volume = readFSR();
+            oled.fillScreen(BLACK);
+            char text[10];
+            sprintf((char*)text, "%f", volume);
+            oled.setTextColor(BLUE);
+            oled.setCursor(0, 0);
+            oled.print(text);
+        }
     }
 }
 
@@ -207,7 +238,7 @@ void setupAccel() {
     }
 }
 
-int loopAccel() {
+int readAccel() {
     int weigh = 0;
     sensors_event_t event;
 
@@ -255,10 +286,11 @@ int loopAccel() {
         Serial.print("Stationary, ");
         if ((X[4] == 0) && (Y[4] == 0) && (Z[4] == 9)) {
             Serial.println("Upright");
-            weigh = 1;
+            weigh = 2;
         }
         else {
             Serial.println("Tilted");
+            weigh = 1;
         }
     }
     else {
@@ -301,7 +333,7 @@ void loopRTC() {
 
 void setupOLED() {
     Serial.print("hello!");
-    tft.begin();
+    oled.begin();
 
     Serial.println("init");
 
@@ -316,10 +348,10 @@ void setupOLED() {
     return;
 }
 
-void loopOLED() {
+/*void loopOLED() {
 
     uint16_t time = millis();
-    tft.fillRect(0, 0, 128, 128, BLUE);
+    oled.fillRect(0, 0, 128, 128, BLUE);
     time = millis() - time;
 
     Serial.println(time, DEC);
@@ -328,12 +360,12 @@ void loopOLED() {
     lcdTestPattern();
     delay(1000);
 
-    tft.invert(true);
+    oled.invert(true);
     delay(1000);
-    tft.invert(false);
+    oled.invert(false);
     delay(1000);
 
-    tft.fillScreen(BLACK);
+    oled.fillScreen(BLACK);
     testdrawtext("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur adipiscing ante sed nibh tincidunt feugiat. Maecenas enim massa, fringilla sed malesuada et, malesuada sit amet turpis. Sed porttitor neque ut ante pretium vitae malesuada nunc bibendum. Nullam aliquet ultrices massa eu hendrerit. Ut sed nisi lorem. In vestibulum purus a tortor imperdiet posuere. ", WHITE);
     delay(1000);
 
@@ -342,7 +374,7 @@ void loopOLED() {
     delay(500);
 
     //a single pixel
-    tft.drawPixel(tft.width() / 2, tft.height() / 2, GREEN);
+    oled.drawPixel(tft.width() / 2, tft.height() / 2, GREEN);
     delay(500);
 
     // line draw test
@@ -360,7 +392,7 @@ void loopOLED() {
     testfillrects(YELLOW, MAGENTA);
     delay(1000);
 
-    tft.fillScreen(BLACK);
+    oled.fillScreen(BLACK);
     testfillcircles(10, BLUE);
     testdrawcircles(10, WHITE);
     delay(1000);
@@ -375,7 +407,7 @@ void loopOLED() {
     delay(1000);
 
     return;
-}
+}*/
 
 void setupBluetooth() {
     Serial1.begin(9600);
@@ -401,7 +433,7 @@ void loopBluetooth() {
         //Serial1.write(Serial.read());
 }
 
-void testlines(uint16_t color) {
+/*void testlines(uint16_t color) {
     tft.fillScreen(BLACK);
     for (uint16_t x = 0; x < tft.width() - 1; x += 6) {
         tft.drawLine(0, 0, x, tft.height() - 1, color);
@@ -573,14 +605,14 @@ void mediabuttons() {
     tft.fillRoundRect(69, 98, 20, 45, 5, RED);
     // play color
     tft.fillTriangle(42, 20, 42, 60, 90, 40, GREEN);
-}
+}*/
 
 /**************************************************************************/
 /*!
     @brief  Renders a simple test pattern on the screen
 */
 /**************************************************************************/
-void lcdTestPattern(void)
+/*void lcdTestPattern(void)
 {
     static const uint16_t PROGMEM colors[] =
     { RED, YELLOW, GREEN, CYAN, BLUE, MAGENTA, BLACK, WHITE };
@@ -589,4 +621,4 @@ void lcdTestPattern(void)
         tft.fillRect(0, tft.height() * c / 8, tft.width(), tft.height() / 8,
             pgm_read_word(&colors[c]));
     }
-}
+}*/
