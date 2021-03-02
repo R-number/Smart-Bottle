@@ -1,8 +1,16 @@
 //#include <Adafruit_ADXL343.h>
+#include <gfxfont.h>
+#include <Adafruit_SPITFT_Macros.h>
+#include <Adafruit_SPITFT.h>
+#include <Adafruit_GrayOLED.h>
+#include <Adafruit_GFX.h>
+#include <Adafruit_SSD1351.h>
 #include <SPI.h>
 #include <Wire.h>
-#include "OLED_Driver.h"
-#include "OLED_GFX.h"
+//#include "OLED_Driver.h"
+//#include "OLED_GFX.h"
+#include "Adafruit_GFX.h"
+#include "Adafruit_SSD1351.h"
 #include "RTClib.h"  
 #include <Adafruit_ADXL345_U.h>
 #include <Adafruit_Sensor.h>
@@ -11,14 +19,37 @@ int flag = 0;
 int LED = 8;
 uint32_t FSRpin = 54;
 
-OLED_GFX oled = OLED_GFX();
-
 Adafruit_ADXL345_Unified accel = Adafruit_ADXL345_Unified();
 
 RTC_DS3231 rtc;
 DateTime currentTime(2021,3,2,13,40,0);
 
 char daysOfTheWeek[7][12] = { "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday" };
+
+// Screen dimensions
+#define SCREEN_WIDTH  128
+#define SCREEN_HEIGHT 128 // Change this to 96 for 1.27" OLED.
+
+// You can use any (4 or) 5 pins 
+//#define SCLK_PIN 2
+//#define MOSI_PIN 3
+#define DC_PIN   26
+#define CS_PIN   27
+#define RST_PIN  29
+
+// Color definitions
+#define	BLACK           0x0000
+#define	BLUE            0x001F
+#define	RED             0xF800
+#define	GREEN           0x07E0
+#define CYAN            0x07FF
+#define MAGENTA         0xF81F
+#define YELLOW          0xFFE0  
+#define WHITE           0xFFFF
+
+Adafruit_SSD1351 tft = Adafruit_SSD1351(SCREEN_WIDTH, SCREEN_HEIGHT, &SPI, CS_PIN, DC_PIN, RST_PIN);
+
+float p = 3.1415926;
 
 void setup() {
     Serial.begin(115200);
@@ -51,6 +82,7 @@ void loop() {
         }*/
 
         //loopRTC();
+        loopOLED();
     }
 }
 
@@ -268,69 +300,81 @@ void loopRTC() {
 }
 
 void setupOLED() {
-    //Init GPIO
-    pinMode(oled_cs, OUTPUT);
-    pinMode(oled_rst, OUTPUT);
-    pinMode(oled_dc, OUTPUT);
+    Serial.print("hello!");
+    tft.begin();
 
-#if INTERFACE_4WIRE_SPI
-    //Init SPI
-    SPI.setDataMode(SPI_MODE0);
-    SPI.setBitOrder(MSBFIRST);
-    SPI.setClockDivider(SPI_CLOCK_DIV2);
-    SPI.begin();
+    Serial.println("init");
 
-#elif INTERFACE_3WIRE_SPI
-    pinMode(oled_sck, OUTPUT);
-    pinMode(oled_din, OUTPUT);
+    // You can optionally rotate the display by running the line below.
+    // Note that a value of 0 means no rotation, 1 means 90 clockwise,
+    // 2 means 180 degrees clockwise, and 3 means 270 degrees clockwise.
+    //tft.setRotation(1);
+    // NOTE: The test pattern at the start will NOT be rotated!  The code
+    // for rendering the test pattern talks directly to the display and
+    // ignores any rotation.
 
-#endif
+    return;
+}
 
-    oled.Device_Init();
+void loopOLED() {
 
-    oled.Display_Interface();
-    delay(3000);
+    uint16_t time = millis();
+    tft.fillRect(0, 0, 128, 128, BLUE);
+    time = millis() - time;
 
-    oled.Clear_Screen();
-    uint8_t text[] = "Hello World !";
-    oled.Set_Color(BLUE);
-    oled.print_String(20, 50, text, FONT_5X8);
-    delay(2000);
-    oled.Clear_Screen();
-
-    oled.Set_Color(WHITE);
-    oled.Draw_Pixel(50, 50);
+    Serial.println(time, DEC);
     delay(1000);
 
     lcdTestPattern();
     delay(1000);
 
-    testlines();
+    tft.invert(true);
+    delay(1000);
+    tft.invert(false);
     delay(1000);
 
-    testfastlines();
+    tft.fillScreen(BLACK);
+    testdrawtext("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur adipiscing ante sed nibh tincidunt feugiat. Maecenas enim massa, fringilla sed malesuada et, malesuada sit amet turpis. Sed porttitor neque ut ante pretium vitae malesuada nunc bibendum. Nullam aliquet ultrices massa eu hendrerit. Ut sed nisi lorem. In vestibulum purus a tortor imperdiet posuere. ", WHITE);
     delay(1000);
 
-    testdrawrects();
-    delay(1000);
-
-    testfillrects(BLUE, YELLOW);
-    delay(1000);
-
-
-    oled.Clear_Screen();
-    testfillcircles(63, BLUE);
+    // tft print function!
+    tftPrintTest();
     delay(500);
-    testdrawcircles(WHITE);
+
+    //a single pixel
+    tft.drawPixel(tft.width() / 2, tft.height() / 2, GREEN);
+    delay(500);
+
+    // line draw test
+    testlines(YELLOW);
+    delay(500);
+
+    // optimized lines
+    testfastlines(RED, BLUE);
+    delay(500);
+
+
+    testdrawrects(GREEN);
+    delay(1000);
+
+    testfillrects(YELLOW, MAGENTA);
+    delay(1000);
+
+    tft.fillScreen(BLACK);
+    testfillcircles(10, BLUE);
+    testdrawcircles(10, WHITE);
     delay(1000);
 
     testroundrects();
-    delay(1000);
+    delay(500);
 
     testtriangles();
+    delay(500);
+
+    Serial.println("done");
     delay(1000);
 
-    // oled.Fill_Color(BLUE);
+    return;
 }
 
 void setupBluetooth() {
@@ -357,192 +401,192 @@ void loopBluetooth() {
         //Serial1.write(Serial.read());
 }
 
-void testlines(void) {
-
-    oled.Set_Color(RED);
-    oled.Clear_Screen();
-    for (uint16_t x = 0; x <= SSD1351_WIDTH - 1; x += 6) {
-        oled.Draw_Line(0, 0, x, SSD1351_HEIGHT - 1);
-        delay(10);
+void testlines(uint16_t color) {
+    tft.fillScreen(BLACK);
+    for (uint16_t x = 0; x < tft.width() - 1; x += 6) {
+        tft.drawLine(0, 0, x, tft.height() - 1, color);
     }
-    for (uint16_t y = 0; y < SSD1351_HEIGHT - 1; y += 6) {
-        oled.Draw_Line(0, 0, SSD1351_WIDTH - 1, y);
-        delay(10);
+    for (uint16_t y = 0; y < tft.height() - 1; y += 6) {
+        tft.drawLine(0, 0, tft.width() - 1, y, color);
     }
 
-    oled.Set_Color(YELLOW);
-    oled.Clear_Screen();
-    for (uint16_t x = 0; x < SSD1351_WIDTH - 1; x += 6) {
-        oled.Draw_Line(SSD1351_WIDTH - 1, 0, x, SSD1351_HEIGHT - 1);
-        delay(10);
+    tft.fillScreen(BLACK);
+    for (uint16_t x = 0; x < tft.width() - 1; x += 6) {
+        tft.drawLine(tft.width() - 1, 0, x, tft.height() - 1, color);
     }
-    for (uint16_t y = 0; y < SSD1351_HEIGHT - 1; y += 6) {
-        oled.Draw_Line(SSD1351_WIDTH - 1, 0, 0, y);
-        delay(10);
+    for (uint16_t y = 0; y < tft.height() - 1; y += 6) {
+        tft.drawLine(tft.width() - 1, 0, 0, y, color);
     }
 
-    oled.Set_Color(BLUE);
-    oled.Clear_Screen();
-    for (uint16_t x = 0; x < SSD1351_WIDTH - 1; x += 6) {
-        oled.Draw_Line(0, SSD1351_HEIGHT - 1, x, 0);
-        delay(10);
+    tft.fillScreen(BLACK);
+    for (uint16_t x = 0; x < tft.width() - 1; x += 6) {
+        tft.drawLine(0, tft.height() - 1, x, 0, color);
     }
-    for (uint16_t y = 0; y < SSD1351_HEIGHT - 1; y += 6) {
-        oled.Draw_Line(0, SSD1351_HEIGHT - 1, SSD1351_WIDTH - 1, y);
-        delay(10);
+    for (uint16_t y = 0; y < tft.height() - 1; y += 6) {
+        tft.drawLine(0, tft.height() - 1, tft.width() - 1, y, color);
     }
 
-    oled.Set_Color(GREEN);
-    oled.Clear_Screen();
-    for (uint16_t x = 0; x < SSD1351_WIDTH - 1; x += 6) {
-        oled.Draw_Line(SSD1351_WIDTH - 1, SSD1351_HEIGHT - 1, x, 0);
-        delay(10);
+    tft.fillScreen(BLACK);
+    for (uint16_t x = 0; x < tft.width() - 1; x += 6) {
+        tft.drawLine(tft.width() - 1, tft.height() - 1, x, 0, color);
     }
-    for (uint16_t y = 0; y < SSD1351_HEIGHT - 1; y += 6) {
-        oled.Draw_Line(SSD1351_WIDTH - 1, SSD1351_HEIGHT - 1, 0, y);
-        delay(10);
+    for (uint16_t y = 0; y < tft.height() - 1; y += 6) {
+        tft.drawLine(tft.width() - 1, tft.height() - 1, 0, y, color);
+    }
+
+}
+
+void testdrawtext(char* text, uint16_t color) {
+    tft.setCursor(0, 0);
+    tft.setTextColor(color);
+    tft.print(text);
+}
+
+void testfastlines(uint16_t color1, uint16_t color2) {
+    tft.fillScreen(BLACK);
+    for (uint16_t y = 0; y < tft.height() - 1; y += 5) {
+        tft.drawFastHLine(0, y, tft.width() - 1, color1);
+    }
+    for (uint16_t x = 0; x < tft.width() - 1; x += 5) {
+        tft.drawFastVLine(x, 0, tft.height() - 1, color2);
     }
 }
 
-void lcdTestPattern(void)
-{
-    uint32_t i, j;
-    oled.Set_Coordinate(0, 0);
-
-    for (i = 0; i < 128; i++) {
-        for (j = 0; j < 128; j++) {
-            if (i < 16) {
-                oled.Set_Color(RED);
-                oled.Write_Data(color_byte[0]);
-                oled.Write_Data(color_byte[1]);
-            }
-            else if (i < 32) {
-                oled.Set_Color(YELLOW);
-                oled.Write_Data(color_byte[0]);
-                oled.Write_Data(color_byte[1]);
-            }
-            else if (i < 48) {
-                oled.Set_Color(GREEN);
-                oled.Write_Data(color_byte[0]);
-                oled.Write_Data(color_byte[1]);
-            }
-            else if (i < 64) {
-                oled.Set_Color(CYAN);
-                oled.Write_Data(color_byte[0]);
-                oled.Write_Data(color_byte[1]);
-            }
-            else if (i < 80) {
-                oled.Set_Color(BLUE);
-                oled.Write_Data(color_byte[0]);
-                oled.Write_Data(color_byte[1]);
-            }
-            else if (i < 96) {
-                oled.Set_Color(MAGENTA);
-                oled.Write_Data(color_byte[0]);
-                oled.Write_Data(color_byte[1]);
-            }
-            else if (i < 112) {
-                oled.Set_Color(BLACK);
-                oled.Write_Data(color_byte[0]);
-                oled.Write_Data(color_byte[1]);
-            }
-            else {
-                oled.Set_Color(WHITE);
-                oled.Write_Data(color_byte[0]);
-                oled.Write_Data(color_byte[1]);
-            }
-        }
-    }
-}
-
-void testfastlines(void) {
-
-    oled.Set_Color(WHITE);
-    oled.Clear_Screen();
-
-    for (uint16_t y = 0; y < SSD1351_WIDTH - 1; y += 5) {
-        oled.Draw_FastHLine(0, y, SSD1351_WIDTH - 1);
-        delay(10);
-    }
-    for (uint16_t x = 0; x < SSD1351_HEIGHT - 1; x += 5) {
-        oled.Draw_FastVLine(x, 0, SSD1351_HEIGHT - 1);
-        delay(10);
-    }
-}
-
-void testdrawrects(void) {
-    oled.Clear_Screen();
-    for (uint16_t x = 0; x < SSD1351_HEIGHT - 1; x += 6) {
-        oled.Draw_Rect((SSD1351_WIDTH - 1) / 2 - x / 2, (SSD1351_HEIGHT - 1) / 2 - x / 2, x, x);
-        delay(10);
+void testdrawrects(uint16_t color) {
+    tft.fillScreen(BLACK);
+    for (uint16_t x = 0; x < tft.height() - 1; x += 6) {
+        tft.drawRect((tft.width() - 1) / 2 - x / 2, (tft.height() - 1) / 2 - x / 2, x, x, color);
     }
 }
 
 void testfillrects(uint16_t color1, uint16_t color2) {
-
-    uint16_t x = SSD1351_HEIGHT - 1;
-    oled.Clear_Screen();
-    oled.Set_Color(color1);
-    oled.Set_FillColor(color2);
-    for (; x > 6; x -= 6) {
-        oled.Fill_Rect((SSD1351_WIDTH - 1) / 2 - x / 2, (SSD1351_HEIGHT - 1) / 2 - x / 2, x, x);
-        oled.Draw_Rect((SSD1351_WIDTH - 1) / 2 - x / 2, (SSD1351_HEIGHT - 1) / 2 - x / 2, x, x);
+    tft.fillScreen(BLACK);
+    for (uint16_t x = tft.height() - 1; x > 6; x -= 6) {
+        tft.fillRect((tft.width() - 1) / 2 - x / 2, (tft.height() - 1) / 2 - x / 2, x, x, color1);
+        tft.drawRect((tft.width() - 1) / 2 - x / 2, (tft.height() - 1) / 2 - x / 2, x, x, color2);
     }
 }
 
 void testfillcircles(uint8_t radius, uint16_t color) {
-
-    oled.Set_Color(color);
-
-    oled.Fill_Circle(64, 64, radius);
-}
-
-
-void testdrawcircles(uint16_t color) {
-
-    uint8_t r = 0;
-    oled.Set_Color(color);
-
-    for (; r < SSD1351_WIDTH / 2; r += 4) {
-        oled.Draw_Circle(64, 64, r);
-        delay(10);
+    for (uint8_t x = radius; x < tft.width() - 1; x += radius * 2) {
+        for (uint8_t y = radius; y < tft.height() - 1; y += radius * 2) {
+            tft.fillCircle(x, y, radius, color);
+        }
     }
 }
 
-void testroundrects(void) {
+void testdrawcircles(uint8_t radius, uint16_t color) {
+    for (uint8_t x = 0; x < tft.width() - 1 + radius; x += radius * 2) {
+        for (uint8_t y = 0; y < tft.height() - 1 + radius; y += radius * 2) {
+            tft.drawCircle(x, y, radius, color);
+        }
+    }
+}
 
+void testtriangles() {
+    tft.fillScreen(BLACK);
+    int color = 0xF800;
+    int t;
+    int w = tft.width() / 2;
+    int x = tft.height();
+    int y = 0;
+    int z = tft.width();
+    for (t = 0; t <= 15; t += 1) {
+        tft.drawTriangle(w, y, y, x, z, x, color);
+        x -= 4;
+        y += 4;
+        z -= 4;
+        color += 100;
+    }
+}
+
+void testroundrects() {
+    tft.fillScreen(BLACK);
     int color = 100;
-    int x = 0, y = 0;
-    int w = SSD1351_WIDTH - 1, h = SSD1351_HEIGHT - 1;
 
-    oled.Clear_Screen();
-
-    for (int i = 0; i <= 20; i++) {
-
-        oled.Draw_RoundRect(x, y, w, h, 5);
+    int x = 0;
+    int y = 0;
+    int w = tft.width();
+    int h = tft.height();
+    for (int i = 0; i <= 24; i++) {
+        tft.drawRoundRect(x, y, w, h, 5, color);
         x += 2;
         y += 3;
         w -= 4;
         h -= 6;
         color += 1100;
-        oled.Set_Color(color);
+        Serial.println(i);
     }
 }
 
-void testtriangles(void) {
-    oled.Clear_Screen();
-    int color = 0xF800;
-    int t;
-    int w = SSD1351_WIDTH / 2;
-    int x = SSD1351_HEIGHT - 1;
-    int y = 0;
-    int z = SSD1351_WIDTH;
-    for (t = 0; t <= 15; t += 1) {
-        oled.Draw_Triangle(w, y, y, x, z, x);
-        x -= 4;
-        y += 4;
-        z -= 4;
-        color += 100;
-        oled.Set_Color(color);
+void tftPrintTest() {
+    tft.fillScreen(BLACK);
+    tft.setCursor(0, 5);
+    tft.setTextColor(RED);
+    tft.setTextSize(1);
+    tft.println("Hello World!");
+    tft.setTextColor(YELLOW);
+    tft.setTextSize(2);
+    tft.println("Hello World!");
+    tft.setTextColor(BLUE);
+    tft.setTextSize(3);
+    tft.print(1234.567);
+    delay(1500);
+    tft.setCursor(0, 5);
+    tft.fillScreen(BLACK);
+    tft.setTextColor(WHITE);
+    tft.setTextSize(0);
+    tft.println("Hello World!");
+    tft.setTextSize(1);
+    tft.setTextColor(GREEN);
+    tft.print(p, 6);
+    tft.println(" Want pi?");
+    tft.println(" ");
+    tft.print(8675309, HEX); // print 8,675,309 out in HEX!
+    tft.println(" Print HEX!");
+    tft.println(" ");
+    tft.setTextColor(WHITE);
+    tft.println("Sketch has been");
+    tft.println("running for: ");
+    tft.setTextColor(MAGENTA);
+    tft.print(millis() / 1000);
+    tft.setTextColor(WHITE);
+    tft.print(" seconds.");
+}
+
+void mediabuttons() {
+    // play
+    tft.fillScreen(BLACK);
+    tft.fillRoundRect(25, 10, 78, 60, 8, WHITE);
+    tft.fillTriangle(42, 20, 42, 60, 90, 40, RED);
+    delay(500);
+    // pause
+    tft.fillRoundRect(25, 90, 78, 60, 8, WHITE);
+    tft.fillRoundRect(39, 98, 20, 45, 5, GREEN);
+    tft.fillRoundRect(69, 98, 20, 45, 5, GREEN);
+    delay(500);
+    // play color
+    tft.fillTriangle(42, 20, 42, 60, 90, 40, BLUE);
+    delay(50);
+    // pause color
+    tft.fillRoundRect(39, 98, 20, 45, 5, RED);
+    tft.fillRoundRect(69, 98, 20, 45, 5, RED);
+    // play color
+    tft.fillTriangle(42, 20, 42, 60, 90, 40, GREEN);
+}
+
+/**************************************************************************/
+/*!
+    @brief  Renders a simple test pattern on the screen
+*/
+/**************************************************************************/
+void lcdTestPattern(void)
+{
+    static const uint16_t PROGMEM colors[] =
+    { RED, YELLOW, GREEN, CYAN, BLUE, MAGENTA, BLACK, WHITE };
+
+    for (uint8_t c = 0; c < 8; c++) {
+        tft.fillRect(0, tft.height() * c / 8, tft.width(), tft.height() / 8,
+            pgm_read_word(&colors[c]));
     }
 }
