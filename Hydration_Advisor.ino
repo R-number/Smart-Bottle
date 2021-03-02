@@ -1,18 +1,18 @@
+
 #include <SPI.h>
 #include <Wire.h>
-#include "OLED_Driver.h"
-#include "OLED_GFX.h"
-#include "RTClib.h"  
+#include "RTClib.h"
 #include <Adafruit_ADXL345_U.h>
 #include <Adafruit_Sensor.h>
+#include <gfxfont.h>
+#include <Adafruit_SPITFT_Macros.h>
+#include <Adafruit_SPITFT.h>
+#include <Adafruit_GrayOLED.h>
+#include <Adafruit_GFX.h>
+#include <Adafruit_SSD1351.h>
 #include "Header.h"
 
-int flag = 0;
-
-OLED_GFX oled = OLED_GFX();
-
 Adafruit_ADXL345_Unified accel = Adafruit_ADXL345_Unified();
-
 RTC_DS3231 rtc;
 
 void setup() {
@@ -20,67 +20,59 @@ void setup() {
     setupFSR();
 
     //setupRTC();
-    //setupAccel();
+    setupAccel();
     //setupOLED();
     //setupBluetooth(); 
 }
 
-float mapFSR(float voltage, float vin) {
-    float mass;
+float readFSR() {
+
+    uint32_t readFSR, readVin;
+    float voltageFSR, voltageVin;
     float volume;
-    float bottleMass = 0.290;// bottle + puck
-    int R = 2000;//
-    float Vcc = vin;//~3.3
+    float weight;
+    float mass;
+    float bottleMass = 0.290;// Bottle + Puck
+    int R = 2000;
+    float Vcc = 3.23;
     float fsrResistance;
     double fsrConductance;
     float constant = 11004.9;
     float fsrForce;
-    //300g 2.71V
-    //350g 2.75V
-    //400g 2.79V
-    //450g 2.83V
-    //500g 2.86V
 
-    //2k
-    //1.2 to 1.8
-
-    //Serial.print("Vcc: ");
-    //Serial.print(Vcc);
-    //Serial.println(" V");
-    //Serial.print("Voltage: ");
-    //Serial.print(voltage);
-    //Serial.println(" V");
-    fsrResistance = ((Vcc * R) / voltage) - R;
-    //Serial.print("FSR Resistance: ");
-    //Serial.print(fsrResistance);
-    //Serial.println(" Ohms");
+    digitalWrite(52, HIGH);
+    delay(500);
+    // readVin = analogRead(pin_Vin);
+    //voltageVin = (float)(readVin / ADC_Scale);// Connect Vin to A1/D55
+    readFSR = analogRead(54);
+    voltageFSR = ((float)readFSR / ADC_Scale) * Vcc;
+    fsrResistance = ((Vcc * R) / voltageFSR) - R;
     fsrConductance = 1.0 / fsrResistance;
-    //Serial.print("FSR Conductance: ");
-    //Serial.print(fsrConductance);
-    //Serial.println(" Ohms");
-    fsrForce = fsrConductance * constant;
-    //Serial.print("FSR Force: ");
-    //Serial.print(fsrForce);
-    //Serial.println(" N");
-    mass = (fsrForce / 9.81) - bottleMass;
-    volume = mass * 1000;
-    //Serial.print("Calculated Volume: ");
-    //Serial.print(volume);
-    //Serial.println(" mL");
 
-    Serial.print(Vcc);
-    Serial.print(", ");
-    Serial.print(voltage);
-    Serial.print(", ");
-    Serial.print(fsrResistance);
-    Serial.print(", ");
-    Serial.print(fsrConductance);
-    Serial.print(", ");
-    Serial.print(fsrForce);
-    Serial.print(", ");
-    //Serial.print(weight);
-    //Serial.print(", ");
+    if (voltageFSR < 1.05) {
+        volume = 0;
+    }
+    else if (voltageFSR <= 1.26) {
+        volume = 100;
+    }
+    else if (voltageFSR <= 1.34) {
+        volume = 200;
+    }
+    else if (voltageFSR <= 1.44) {
+        volume = 300;
+    }
+    else if (voltageFSR < 1.54) {
+        volume = 400;
+    }
+    else {
+        volume = 500;
+    }
+
+    Serial.print("      Volume: ");
     Serial.println(volume);
+    digitalWrite(52, LOW);
+    delay(500);
+
     return volume;
 }
 
