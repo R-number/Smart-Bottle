@@ -14,6 +14,7 @@
 
 Adafruit_ADXL345_Unified accel = Adafruit_ADXL345_Unified();
 RTC_DS3231 rtc;
+Adafruit_SSD1351 oled = Adafruit_SSD1351(SCREEN_WIDTH, SCREEN_HEIGHT, &SPI, CS_PIN, DC_PIN, RST_PIN);
 
 DateTime devTime(2021, 3, 2, 21, 0, 0);
 
@@ -120,7 +121,19 @@ void setupFSR() {
 void setupRTC(DateTime currentTime) {
     rtc.begin();
     rtc.adjust(currentTime);
-    return;
+}
+
+void setupAccel() {
+    Serial.println();
+
+    //ACCEL
+    Serial.println("Accelerometer: wire.begin");
+    Wire.begin();
+    if (!accel.begin())
+    {
+        Serial.println("Valid accelerometer sensor not found!");
+        while (1);
+    }
 }
 
 void setupBluetooth() {
@@ -129,83 +142,19 @@ void setupBluetooth() {
     Serial.println("Ready to connect\nDefualt password is 1234 or 000");
 }
 
-void setupAccel() {
-    Serial.println();
-
-    //ACCEL
-    Serial.println("ACCEL - wire.begin ====");
-    Wire.begin();//I2C 0, SCL SDA
-    if (!accel.begin())
-    {
-        Serial.println("No valid sensor found");
-        while (1);
-    }
-}
-
 void setupOLED() {
-    //Init GPIO
-    pinMode(oled_cs, OUTPUT);
-    pinMode(oled_rst, OUTPUT);
-    pinMode(oled_dc, OUTPUT);
+    Serial.print("hello!");
+    oled.begin();
 
-#if INTERFACE_4WIRE_SPI
-    //Init SPI
-    SPI.setDataMode(SPI_MODE0);
-    SPI.setBitOrder(MSBFIRST);
-    SPI.setClockDivider(SPI_CLOCK_DIV2);
-    SPI.begin();
+    Serial.println("init");
 
-#elif INTERFACE_3WIRE_SPI
-    pinMode(oled_sck, OUTPUT);
-    pinMode(oled_din, OUTPUT);
-
-#endif
-
-    oled.Device_Init();
-
-    oled.Display_Interface();
-    delay(3000);
-
-    oled.Clear_Screen();
-    uint8_t text[] = "Hello World!";
-    oled.Set_Color(BLUE);
-    oled.print_String(20, 50, text, FONT_5X8);
-    delay(2000);
-    oled.Clear_Screen();
-
-    oled.Set_Color(WHITE);
-    oled.Draw_Pixel(50, 50);
-    delay(1000);
-
-    lcdTestPattern();
-    delay(1000);
-
-    testlines();
-    delay(1000);
-
-    testfastlines();
-    delay(1000);
-
-    testdrawrects();
-    delay(1000);
-
-    testfillrects(BLUE, YELLOW);
-    delay(1000);
-
-
-    oled.Clear_Screen();
-    testfillcircles(63, BLUE);
-    delay(500);
-    testdrawcircles(WHITE);
-    delay(1000);
-
-    testroundrects();
-    delay(1000);
-
-    testtriangles();
-    delay(1000);
-
-    // oled.Fill_Color(BLUE);
+    // You can optionally rotate the display by running the line below.
+    // Note that a value of 0 means no rotation, 1 means 90 clockwise,
+    // 2 means 180 degrees clockwise, and 3 means 270 degrees clockwise.
+    //tft.setRotation(1);
+    // NOTE: The test pattern at the start will NOT be rotated!  The code
+    // for rendering the test pattern talks directly to the display and
+    // ignores any rotation.
 }
 
 void loopAccel() {
