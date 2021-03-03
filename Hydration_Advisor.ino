@@ -106,7 +106,7 @@ void loop() {
             updateOLED();
         }
         if (displayFlag) {
-            if (millis() - displayInterval >= 20000) {// Display message for 20 seconds.
+            if (millis() - displayInterval >= 30000) {// Display message for 20 seconds.
                 displayFlag = false;
                 oled.fillScreen(BLACK);
             }
