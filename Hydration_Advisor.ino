@@ -62,7 +62,7 @@ void updateOLED() {
     // Water Target Met
     // 0250.00/1500.00
     // 15 chars long
-    oled.setCursor(40, SCREEN_HEIGHT);
+    oled.setCursor(40, SCREEN_HEIGHT-10);
     oled.setTextColor(MAGENTA);
     sprintf(drank, "%07.2f", waterDrank);
     oled.print(drank);
