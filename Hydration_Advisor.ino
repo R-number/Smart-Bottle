@@ -43,18 +43,18 @@ void updateOLED() {
     // Avatar
     oled.setCursor(0, 0);
     mood_position[0] = (SCREEN_WIDTH / 2);
-    mood_position[1] = (SCREEN_HEIGHT / 2) - 40;
-    oled.fillCircle(mood_position[0], mood_position[1], 70, YELLOW);
-    oled.fillCircle(mood_position[0], mood_position[1], 65, BLACK);
+    mood_position[1] = (SCREEN_HEIGHT / 2) - 25;
+    oled.fillCircle(mood_position[0], mood_position[1], 60, YELLOW);
+    oled.fillCircle(mood_position[0], mood_position[1], 55, BLACK);
     if (waterDrank / waterTarget >= 0.75) {// 75% of target met. Should it be 100%?
         oled.fillCircle(mood_position[0], mood_position[1] + 60, 35, YELLOW);
         oled.fillCircle(mood_position[0], mood_position[1] + 60, 30, BLACK);
-        oled.fillRect(0, 0, SCREEN_WIDTH, mood_position[1] + 60 + 15, BLACK);
+        oled.fillRect(0, 0, SCREEN_WIDTH, mood_position[1] + 25 + 15, BLACK);
     }
     else {
         oled.fillCircle(mood_position[0], mood_position[1] + 60, 35, YELLOW);
         oled.fillCircle(mood_position[0], mood_position[1] + 60, 30, BLACK);
-        oled.fillRect(0, mood_position[1] + 60 + 15, SCREEN_WIDTH, SCREEN_HEIGHT, BLACK);
+        oled.fillRect(0, mood_position[1] + 25 + 15, SCREEN_WIDTH, SCREEN_HEIGHT, BLACK);
     }
     oled.fillCircle(mood_position[0] - 20, mood_position[1], 10, YELLOW);
     oled.fillCircle(mood_position[0] + 20, mood_position[1], 10, YELLOW);
@@ -71,9 +71,9 @@ void updateOLED() {
     oled.print(target);
 
     // Streaks
-    oled.setCursor(SCREEN_WIDTH-10, 0);
+    oled.setCursor(SCREEN_WIDTH-15, 0);
     oled.setTextColor(CYAN);
-    sprintf(streak, "%03u", waterStreak);
+    sprintf(streak, "%03f", waterStreak);
     oled.print(streak);
 }
 
