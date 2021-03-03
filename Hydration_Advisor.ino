@@ -39,19 +39,21 @@ void updateOLED() {
     oled.fillScreen(BLACK);
     oled.setCursor(0, 0);
     mood_position[0] = (SCREEN_WIDTH / 2);
-    mood_position[1] = (SCREEN_HEIGHT / 2);
+    mood_position[1] = (SCREEN_HEIGHT / 2) - 40;
+    oled.fillCircle(mood_position[0], mood_position[1], 70, YELLOW);
+    oled.fillCircle(mood_position[0], mood_position[1], 65, BLACK);
     if (waterDrank / waterTarget >= 0.75) {// 75% of target met. Should it be 100%?
-        oled.fillCircle(mood_position[0], mood_position[1] + 50, 35, YELLOW);
-        oled.fillCircle(mood_position[0], mood_position[1] + 50, 30, BLACK);
-        oled.fillRect(0, 0, SCREEN_WIDTH, mood_position[1] + 50, BLACK);
+        oled.fillCircle(mood_position[0], mood_position[1] + 60, 35, YELLOW);
+        oled.fillCircle(mood_position[0], mood_position[1] + 60, 30, BLACK);
+        oled.fillRect(0, 0, SCREEN_WIDTH, mood_position[1] + 60 + 15, BLACK);
     }
     else {
-        oled.fillCircle(mood_position[0], mood_position[1] + 50, 35, YELLOW);
-        oled.fillCircle(mood_position[0], mood_position[1] + 50, 30, BLACK);
-        oled.fillRect(0, mood_position[1] + 50, SCREEN_WIDTH, SCREEN_HEIGHT, BLACK);
+        oled.fillCircle(mood_position[0], mood_position[1] + 60, 35, YELLOW);
+        oled.fillCircle(mood_position[0], mood_position[1] + 60, 30, BLACK);
+        oled.fillRect(0, mood_position[1] + 60 + 15, SCREEN_WIDTH, SCREEN_HEIGHT, BLACK);
     }
-    oled.fillCircle(mood_position[0] - 20, mood_position[1] - 10, 10, YELLOW);
-    oled.fillCircle(mood_position[0] + 20, mood_position[1] - 10, 10, YELLOW);
+    oled.fillCircle(mood_position[0] - 20, mood_position[1], 10, YELLOW);
+    oled.fillCircle(mood_position[0] + 20, mood_position[1], 10, YELLOW);
 
     // 0250.00/1500.00
     // 15 chars long
