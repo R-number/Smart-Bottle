@@ -21,6 +21,7 @@ DateTime devTime(2021, 3, 2, 22, 0, 0);
 float waterTarget = 1500;
 float waterVolume = 0;
 float waterDrank = 0;
+uint8_t waterStreak = 0;
 
 void setup() {
     Serial.begin(115200);
@@ -34,9 +35,12 @@ void setup() {
 void updateOLED() {
     char drank[6];
     char target[7];
+    char streak[3];
     uint8_t mood_position[2];
 
     oled.fillScreen(BLACK);
+
+    // Avatar
     oled.setCursor(0, 0);
     mood_position[0] = (SCREEN_WIDTH / 2);
     mood_position[1] = (SCREEN_HEIGHT / 2) - 40;
@@ -55,15 +59,22 @@ void updateOLED() {
     oled.fillCircle(mood_position[0] - 20, mood_position[1], 10, YELLOW);
     oled.fillCircle(mood_position[0] + 20, mood_position[1], 10, YELLOW);
 
+    // Water Target Met
     // 0250.00/1500.00
     // 15 chars long
     oled.setCursor(40, SCREEN_HEIGHT);
-    oled.setTextColor(YELLOW);
+    oled.setTextColor(MAGENTA);
     sprintf(drank, "%07.2f", waterDrank);
     oled.print(drank);
     oled.print("/");
     sprintf(target, "%07.2f", waterTarget);
     oled.print(target);
+
+    // Streaks
+    oled.setCursor(SCREEN_WIDTH-10, 0);
+    oled.setTextColor(CYAN);
+    sprintf(streak, "%03u", waterStreak);
+    oled.print(streak);
 }
 
 void loop() {
