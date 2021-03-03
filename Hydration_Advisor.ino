@@ -61,7 +61,8 @@ void updateOLED() {
 void loop() {
     float input, volume; 
     static uint8_t accel, previous_accel;
-    static uint32_t accelInterval, displayInterval;
+    static uint32_t accelInterval = 0;
+    static uint32_t displayInterval;
     static bool displayFlag;
 
     if (Serial.available() > 0) {
@@ -69,7 +70,10 @@ void loop() {
 
         if (millis() - accelInterval >= 2000) {// Read accelerometer with two second intervals.
             accelInterval = millis();
+            Serial.println("Reading Accelerometer");
             accel = readAccel();
+            Serial.print("Finished: accel = ");
+            Serial.println(accel);
         }
 
         if (accel == 0) {
@@ -247,6 +251,8 @@ void setupOLED() {
     // NOTE: The test pattern at the start will NOT be rotated!  The code
     // for rendering the test pattern talks directly to the display and
     // ignores any rotation.
+    oled.fillScreen(BLACK);
+    return;
 }
 
 void setupBluetooth() {
