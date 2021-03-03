@@ -34,6 +34,7 @@ void setup() {
 void updateOLED() {
     char drank[6];
     char target[7];
+    uint8_t mood_position[2];
     // 250.00/1500.00
 
     sprintf(drank, "%f", waterDrank);
@@ -45,6 +46,16 @@ void updateOLED() {
     oled.print(drank);
     oled.print("/");
     oled.print(target);
+    mood_position[0] = (SCREEN_WIDTH / 2);
+    mood_position[1] = (SCREEN_HEIGHT / 2);
+    oled.fillCircle(mood_position[0] - 20, mood_position[1], 5, YELLOW);
+    oled.fillCircle(mood_position[0] + 20, mood_position[1], 5, YELLOW);
+    if (waterDrank / waterTarget >= 0.75) {
+        //
+    }
+    else {
+        //
+    }
 }
 
 void loop() {
@@ -212,7 +223,6 @@ void setupFSR() {
 void setupRTC(DateTime currentTime) {
     rtc.begin();
     rtc.adjust(currentTime);
-    secondInterval = rtc.now().second();
 }
 
 void setupAccel() {
