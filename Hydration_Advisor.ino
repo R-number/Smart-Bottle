@@ -40,7 +40,7 @@ void updateOLED() {
     oled.setCursor(0, 0);
     mood_position[0] = (SCREEN_WIDTH / 2);
     mood_position[1] = (SCREEN_HEIGHT / 2);
-    if (waterDrank / waterTarget >= 0.75) {
+    if (waterDrank / waterTarget >= 0.75) {// 75% of target met. Should it be 100%?
         oled.fillCircle(mood_position[0], mood_position[1] + 50, 35, YELLOW);
         oled.fillCircle(mood_position[0], mood_position[1] + 50, 30, BLACK);
         oled.fillRect(0, 0, SCREEN_WIDTH, mood_position[1] + 50, BLACK);
@@ -69,24 +69,36 @@ void loop() {
     static uint8_t accel, previous_accel = 0;
     static uint32_t accelInterval;
     static uint32_t displayInterval;
-    static bool displayFlag;
+    static bool displayFlag = false;
+    static bool tiltFlag = false;
 
     if (millis() - accelInterval >= 2000) {// Read accelerometer with two second intervals.
         accelInterval = millis();
-        Serial.println("Reading Accelerometer");
         accel = readAccel();
-        Serial.print("Finished: accel = ");
+        Serial.print("accel = ");
         Serial.println(accel);
     }
 
-    if (accel == 0) {
+    if (displayFlag) {
+        if (millis() - displayInterval >= 20000) {// Display message for 20 seconds.
+            displayFlag = false;
+            oled.fillScreen(BLACK);
+        }
+    }
+    else if (tiltFlag) {
+        if (millis() - displayInterval >= 5000) {// Display message for 5 seconds.
+            tiltFlag = false;
+            oled.fillScreen(BLACK);
+        }
+    }
+    else if (accel == 0) {
         if (previous_accel != 0)
             oled.fillScreen(BLACK);
         previous_accel = 0;
     }
     else if (accel == 1) {
         if (previous_accel != 1) {
-            displayFlag = true;
+            tiltFlag = true;
             displayInterval = millis();
             oled.fillScreen(BLACK);
             char text[] = "Surface must be level!";
@@ -94,28 +106,17 @@ void loop() {
             oled.setCursor(0, 0);
             oled.print(text);
         }
-        if (displayFlag) {
-            if (millis() - displayInterval >= 5000) {// Display message for 5 seconds.
-                displayFlag = false;
-                oled.fillScreen(BLACK);
-            }
-        }
         previous_accel = 1;
     }
     else if (accel == 2) {
         if (previous_accel != 2) {
             displayFlag = true;
+            displayInterval = millis();
             volume = readFSR();
             if (volume < waterVolume)
                 waterDrank += waterVolume - volume;
             waterVolume = volume;
             updateOLED();
-        }
-        if (displayFlag) {
-            if (millis() - displayInterval >= 30000) {// Display message for 20 seconds.
-                displayFlag = false;
-                oled.fillScreen(BLACK);
-            }
         }
         previous_accel = 2;
     }
