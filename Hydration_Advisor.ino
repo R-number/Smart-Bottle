@@ -43,12 +43,12 @@ void updateOLED() {
     if (waterDrank / waterTarget >= 0.75) {
         oled.fillCircle(mood_position[0], mood_position[1] + 20, 40, YELLOW);
         oled.fillCircle(mood_position[0], mood_position[1] + 20, 35, BLACK);
-        oled.fillRect(0, 0, SCREEN_WIDTH, mood_position[1] + 20 + 40, BLACK);
+        oled.fillRect(0, 0, SCREEN_WIDTH, mood_position[1] + 20, BLACK);
     }
     else {
         oled.fillCircle(mood_position[0], mood_position[1] + 20, 40, YELLOW);
         oled.fillCircle(mood_position[0], mood_position[1] + 20, 35, BLACK);
-        oled.fillRect(0, mood_position[1] + 20 + 40, SCREEN_WIDTH, SCREEN_HEIGHT, BLACK);
+        oled.fillRect(0, mood_position[1] + 20, SCREEN_WIDTH, SCREEN_HEIGHT, BLACK);
     }
     oled.fillCircle(mood_position[0] - 20, mood_position[1], 10, YELLOW);
     oled.fillCircle(mood_position[0] + 20, mood_position[1], 10, YELLOW);
