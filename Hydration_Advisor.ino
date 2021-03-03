@@ -35,27 +35,33 @@ void updateOLED() {
     char drank[6];
     char target[7];
     uint8_t mood_position[2];
-    // 250.00/1500.00
-
-    sprintf(drank, "%f", waterDrank);
-    sprintf(target, "%f", waterTarget);
 
     oled.fillScreen(BLACK);
     oled.setCursor(0, 0);
-    oled.setTextColor(YELLOW);
-    oled.print(drank);
-    oled.print("/");
-    oled.print(target);
     mood_position[0] = (SCREEN_WIDTH / 2);
     mood_position[1] = (SCREEN_HEIGHT / 2);
-    oled.fillCircle(mood_position[0] - 20, mood_position[1], 5, YELLOW);
-    oled.fillCircle(mood_position[0] + 20, mood_position[1], 5, YELLOW);
     if (waterDrank / waterTarget >= 0.75) {
-        //
+        oled.fillCircle(mood_position[0], mood_position[1] + 20, 40, YELLOW);
+        oled.fillCircle(mood_position[0], mood_position[1] + 20, 35, BLACK);
+        oled.fillRect(0, 0, SCREEN_WIDTH, mood_position[1] + 20 + 40, BLACK);
     }
     else {
-        //
+        oled.fillCircle(mood_position[0], mood_position[1] + 20, 40, YELLOW);
+        oled.fillCircle(mood_position[0], mood_position[1] + 20, 35, BLACK);
+        oled.fillRect(0, mood_position[1] + 20 + 40, SCREEN_WIDTH, SCREEN_HEIGHT, BLACK);
     }
+    oled.fillCircle(mood_position[0] - 20, mood_position[1], 10, YELLOW);
+    oled.fillCircle(mood_position[0] + 20, mood_position[1], 10, YELLOW);
+
+    // 0250.00/1500.00
+    // 15 chars long
+    oled.setCursor(0, SCREEN_HEIGHT-10);
+    oled.setTextColor(YELLOW);
+    sprintf(drank, "%07.2f", waterDrank);
+    oled.print(drank);
+    oled.print("/");
+    sprintf(target, "%07.2f", waterTarget);
+    oled.print(target);
 }
 
 void loop() {
