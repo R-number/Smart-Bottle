@@ -57,7 +57,7 @@ void updateOLED() {
 
     // 0250.00/1500.00
     // 15 chars long
-    oled.setCursor(0, SCREEN_HEIGHT);
+    oled.setCursor(40, SCREEN_HEIGHT);
     oled.setTextColor(YELLOW);
     sprintf(drank, "%07.2f", waterDrank);
     oled.print(drank);
