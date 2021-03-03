@@ -60,62 +60,58 @@ void updateOLED() {
 
 void loop() {
     float input, volume; 
-    static uint8_t accel, previous_accel;
-    static uint32_t accelInterval = 0;
+    static uint8_t accel, previous_accel = 0;
+    static uint32_t accelInterval;
     static uint32_t displayInterval;
     static bool displayFlag;
 
-    if (Serial.available() > 0) {
-        input = Serial.parseFloat();
+    if (millis() - accelInterval >= 2000) {// Read accelerometer with two second intervals.
+        accelInterval = millis();
+        Serial.println("Reading Accelerometer");
+        accel = readAccel();
+        Serial.print("Finished: accel = ");
+        Serial.println(accel);
+    }
 
-        if (millis() - accelInterval >= 2000) {// Read accelerometer with two second intervals.
-            accelInterval = millis();
-            Serial.println("Reading Accelerometer");
-            accel = readAccel();
-            Serial.print("Finished: accel = ");
-            Serial.println(accel);
+    if (accel == 0) {
+        if (previous_accel != 0)
+            oled.fillScreen(BLACK);
+        previous_accel = 0;
+    }
+    else if (accel == 1) {
+        if (previous_accel != 1) {
+            displayFlag = true;
+            displayInterval = millis();
+            oled.fillScreen(BLACK);
+            char text[] = "Surface must be level!";
+            oled.setTextColor(YELLOW);
+            oled.setCursor(0, 0);
+            oled.print(text);
         }
-
-        if (accel == 0) {
-            previous_accel = 0;
-            if (previous_accel != 0)
+        if (displayFlag) {
+            if (millis() - displayInterval >= 5000) {// Display message for 5 seconds.
+                displayFlag = false;
                 oled.fillScreen(BLACK);
+            }
         }
-        else if (accel == 1) {
-            previous_accel = 1;
-            if (previous_accel != 1) {
-                displayFlag = true;
-                displayInterval = millis();
+        previous_accel = 1;
+    }
+    else if (accel == 2) {
+        if (previous_accel != 2) {
+            displayFlag = true;
+            volume = readFSR();
+            if (volume < waterVolume)
+                waterDrank += waterVolume - volume;
+            waterVolume = volume;
+            updateOLED();
+        }
+        if (displayFlag) {
+            if (millis() - displayInterval >= 20000) {// Display message for 20 seconds.
+                displayFlag = false;
                 oled.fillScreen(BLACK);
-                char text[] = "Surface must be level!";
-                oled.setTextColor(YELLOW);
-                oled.setCursor(0, 0);
-                oled.print(text);
-            }
-            if (displayFlag) {
-                if (millis() - displayInterval >= 5000) {// Display message for 5 seconds.
-                    displayFlag = false;
-                    oled.fillScreen(BLACK);
-                }
             }
         }
-        else if (accel == 2) {
-            previous_accel = 2;
-            if (previous_accel != 2) {
-                displayFlag = true;
-                volume = readFSR();
-                if (volume < waterVolume)
-                    waterDrank += waterVolume - volume;
-                waterVolume = volume;
-                updateOLED();
-            }
-            if (displayFlag) {
-                if (millis() - displayInterval >= 20000) {// Display message for 20 seconds.
-                    displayFlag = false;
-                    oled.fillScreen(BLACK);
-                }
-            }
-        }
+        previous_accel = 2;
     }
 }
 
@@ -171,43 +167,9 @@ float readFSR() {
 }
 
 uint8_t readAccel() {
+    int weigh = 0;
     sensors_event_t event;
-    int x, y, z;
-    int i;
-    bool isStationary = true;
 
-    accel.getEvent(&event);
-    x = event.acceleration.x;
-    y = event.acceleration.y;
-    z = event.acceleration.z;
-    for (i = 1; i < 5; i++) {
-        accel.getEvent(&event);
-        if ((x != event.acceleration.x) || (y != event.acceleration.y) || (z != event.acceleration.z))
-            isStationary = false;
-        x = event.acceleration.x;
-        y = event.acceleration.y;
-        z = event.acceleration.z;
-        delay(100);// 100 x 5 = 500 ms read time.
-    }
-    if (isStationary) {
-        if ((x == 0) && (y == 0) && (z == 9))
-            return 2;// Stationary and Orientated
-        else
-            return 1;// Stationary and Tilted
-    }
-    else
-        return 0;// Not Stationary
-
-    /*Serial.print("X1: ");
-    Serial.print(X1);
-    Serial.print(", ");
-    Serial.print("Y1: ");
-    Serial.print(Y1);
-    Serial.print(", ");
-    Serial.print("Z1: ");
-    Serial.print(Z1);
-    Serial.print("  ");
-    Serial.print("  m/s^2   ");*/
     /*          ^ Z
                 |
                 + - - > Y
@@ -215,6 +177,55 @@ uint8_t readAccel() {
               /
             /_ X
     */
+    int X[5];
+    int Y[5];
+    int Z[5];
+    int Xdiff;
+    int Ydiff;
+    int Zdiff;
+    int stationary;
+
+    accel.getEvent(&event);
+    X[0] = event.acceleration.x;
+    Y[0] = event.acceleration.y;
+    Z[0] = event.acceleration.z;
+
+    for (int i = 1; i < 5; i++) {
+        accel.getEvent(&event);
+        X[i] = event.acceleration.x;
+        Y[i] = event.acceleration.y;
+        Z[i] = event.acceleration.z;
+
+        Xdiff = X[i] - X[i - 1];
+        Ydiff = Y[i] - Y[i - 1];
+        Zdiff = Z[i] - Z[i - 1];
+
+        if (!Xdiff && !Ydiff && !Zdiff) {
+            stationary = 1;
+        }
+        else {
+            stationary = 0;
+            break;
+        }
+        delay(200);
+    }
+
+    if (stationary) {
+        //Serial.print("Stationary, ");
+        if ((X[4] == 0) && (Y[4] == 0) && (Z[4] == 9)) {
+            //Serial.println("Upright");
+            weigh = 2;
+        }
+        else {
+            //Serial.println("Tilted");
+            weigh = 1;
+        }
+    }
+    else {
+        //Serial.println("Moving");
+        weigh = 0;
+    }
+    return weigh;
 }
 
 void setupFSR() {
@@ -275,177 +286,3 @@ void loopBluetooth() {
     //if (Serial.available())
         //Serial1.write(Serial.read());
 }
-
-/*void testlines(uint16_t color) {
-    tft.fillScreen(BLACK);
-    for (uint16_t x = 0; x < tft.width() - 1; x += 6) {
-        tft.drawLine(0, 0, x, tft.height() - 1, color);
-    }
-    for (uint16_t y = 0; y < tft.height() - 1; y += 6) {
-        tft.drawLine(0, 0, tft.width() - 1, y, color);
-    }
-
-    tft.fillScreen(BLACK);
-    for (uint16_t x = 0; x < tft.width() - 1; x += 6) {
-        tft.drawLine(tft.width() - 1, 0, x, tft.height() - 1, color);
-    }
-    for (uint16_t y = 0; y < tft.height() - 1; y += 6) {
-        tft.drawLine(tft.width() - 1, 0, 0, y, color);
-    }
-
-    tft.fillScreen(BLACK);
-    for (uint16_t x = 0; x < tft.width() - 1; x += 6) {
-        tft.drawLine(0, tft.height() - 1, x, 0, color);
-    }
-    for (uint16_t y = 0; y < tft.height() - 1; y += 6) {
-        tft.drawLine(0, tft.height() - 1, tft.width() - 1, y, color);
-    }
-
-    tft.fillScreen(BLACK);
-    for (uint16_t x = 0; x < tft.width() - 1; x += 6) {
-        tft.drawLine(tft.width() - 1, tft.height() - 1, x, 0, color);
-    }
-    for (uint16_t y = 0; y < tft.height() - 1; y += 6) {
-        tft.drawLine(tft.width() - 1, tft.height() - 1, 0, y, color);
-    }
-
-}
-
-void testdrawtext(char* text, uint16_t color) {
-    tft.setCursor(0, 0);
-    tft.setTextColor(color);
-    tft.print(text);
-}
-
-void testfastlines(uint16_t color1, uint16_t color2) {
-    tft.fillScreen(BLACK);
-    for (uint16_t y = 0; y < tft.height() - 1; y += 5) {
-        tft.drawFastHLine(0, y, tft.width() - 1, color1);
-    }
-    for (uint16_t x = 0; x < tft.width() - 1; x += 5) {
-        tft.drawFastVLine(x, 0, tft.height() - 1, color2);
-    }
-}
-
-void testdrawrects(uint16_t color) {
-    tft.fillScreen(BLACK);
-    for (uint16_t x = 0; x < tft.height() - 1; x += 6) {
-        tft.drawRect((tft.width() - 1) / 2 - x / 2, (tft.height() - 1) / 2 - x / 2, x, x, color);
-    }
-}
-
-void testfillrects(uint16_t color1, uint16_t color2) {
-    tft.fillScreen(BLACK);
-    for (uint16_t x = tft.height() - 1; x > 6; x -= 6) {
-        tft.fillRect((tft.width() - 1) / 2 - x / 2, (tft.height() - 1) / 2 - x / 2, x, x, color1);
-        tft.drawRect((tft.width() - 1) / 2 - x / 2, (tft.height() - 1) / 2 - x / 2, x, x, color2);
-    }
-}
-
-void testfillcircles(uint8_t radius, uint16_t color) {
-    for (uint8_t x = radius; x < tft.width() - 1; x += radius * 2) {
-        for (uint8_t y = radius; y < tft.height() - 1; y += radius * 2) {
-            tft.fillCircle(x, y, radius, color);
-        }
-    }
-}
-
-void testdrawcircles(uint8_t radius, uint16_t color) {
-    for (uint8_t x = 0; x < tft.width() - 1 + radius; x += radius * 2) {
-        for (uint8_t y = 0; y < tft.height() - 1 + radius; y += radius * 2) {
-            tft.drawCircle(x, y, radius, color);
-        }
-    }
-}
-
-void testtriangles() {
-    tft.fillScreen(BLACK);
-    int color = 0xF800;
-    int t;
-    int w = tft.width() / 2;
-    int x = tft.height();
-    int y = 0;
-    int z = tft.width();
-    for (t = 0; t <= 15; t += 1) {
-        tft.drawTriangle(w, y, y, x, z, x, color);
-        x -= 4;
-        y += 4;
-        z -= 4;
-        color += 100;
-    }
-}
-
-void testroundrects() {
-    tft.fillScreen(BLACK);
-    int color = 100;
-
-    int x = 0;
-    int y = 0;
-    int w = tft.width();
-    int h = tft.height();
-    for (int i = 0; i <= 24; i++) {
-        tft.drawRoundRect(x, y, w, h, 5, color);
-        x += 2;
-        y += 3;
-        w -= 4;
-        h -= 6;
-        color += 1100;
-        Serial.println(i);
-    }
-}
-
-void tftPrintTest() {
-    tft.fillScreen(BLACK);
-    tft.setCursor(0, 5);
-    tft.setTextColor(RED);
-    tft.setTextSize(1);
-    tft.println("Hello World!");
-    tft.setTextColor(YELLOW);
-    tft.setTextSize(2);
-    tft.println("Hello World!");
-    tft.setTextColor(BLUE);
-    tft.setTextSize(3);
-    tft.print(1234.567);
-    delay(1500);
-    tft.setCursor(0, 5);
-    tft.fillScreen(BLACK);
-    tft.setTextColor(WHITE);
-    tft.setTextSize(0);
-    tft.println("Hello World!");
-    tft.setTextSize(1);
-    tft.setTextColor(GREEN);
-    tft.print(p, 6);
-    tft.println(" Want pi?");
-    tft.println(" ");
-    tft.print(8675309, HEX); // print 8,675,309 out in HEX!
-    tft.println(" Print HEX!");
-    tft.println(" ");
-    tft.setTextColor(WHITE);
-    tft.println("Sketch has been");
-    tft.println("running for: ");
-    tft.setTextColor(MAGENTA);
-    tft.print(millis() / 1000);
-    tft.setTextColor(WHITE);
-    tft.print(" seconds.");
-}
-
-void mediabuttons() {
-    // play
-    tft.fillScreen(BLACK);
-    tft.fillRoundRect(25, 10, 78, 60, 8, WHITE);
-    tft.fillTriangle(42, 20, 42, 60, 90, 40, RED);
-    delay(500);
-    // pause
-    tft.fillRoundRect(25, 90, 78, 60, 8, WHITE);
-    tft.fillRoundRect(39, 98, 20, 45, 5, GREEN);
-    tft.fillRoundRect(69, 98, 20, 45, 5, GREEN);
-    delay(500);
-    // play color
-    tft.fillTriangle(42, 20, 42, 60, 90, 40, BLUE);
-    delay(50);
-    // pause color
-    tft.fillRoundRect(39, 98, 20, 45, 5, RED);
-    tft.fillRoundRect(69, 98, 20, 45, 5, RED);
-    // play color
-    tft.fillTriangle(42, 20, 42, 60, 90, 40, GREEN);
-}*/
