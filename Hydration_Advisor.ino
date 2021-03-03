@@ -57,7 +57,7 @@ void updateOLED() {
 
     // 0250.00/1500.00
     // 15 chars long
-    oled.setCursor(0, SCREEN_HEIGHT-10);
+    oled.setCursor(0, SCREEN_HEIGHT);
     oled.setTextColor(YELLOW);
     sprintf(drank, "%07.2f", waterDrank);
     oled.print(drank);
@@ -105,7 +105,7 @@ void loop() {
             oled.fillScreen(BLACK);
             char text[] = "Surface must be level!";
             oled.setTextColor(YELLOW);
-            oled.setCursor(0, 0);
+            oled.setCursor(0, SCREEN_HEIGHT);
             oled.print(text);
         }
         previous_accel = 1;
