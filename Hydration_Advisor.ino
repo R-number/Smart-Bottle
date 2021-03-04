@@ -36,44 +36,47 @@ void updateOLED() {
     char drank[6];
     char target[7];
     char streak[3];
-    uint8_t mood_position[2];
+    uint8_t position[2];
 
     oled.fillScreen(BLACK);
 
     // Avatar
     oled.setCursor(0, 0);
-    mood_position[0] = (SCREEN_WIDTH / 2);
-    mood_position[1] = (SCREEN_HEIGHT / 2) - 25;
+    position[0] = 48;
+    position[1] = 32;
     if (waterDrank / waterTarget >= 0.75) {// 75% of target met. Should it be 100%?
-        oled.fillCircle(mood_position[0], mood_position[1] + 60, 35, YELLOW);
-        oled.fillCircle(mood_position[0], mood_position[1] + 60, 30, BLACK);
-        oled.fillRect(0, 0, SCREEN_WIDTH, mood_position[1] + 50, BLACK);
+        oled.fillCircle(position[0], position[1] + 60, 30, YELLOW);
+        oled.fillCircle(position[0], position[1] + 60, 25, BLACK);
+        oled.fillRect(0, 0, SCREEN_WIDTH, position[1] + 45, BLACK);
     }
     else {
-        oled.fillCircle(mood_position[0], mood_position[1] + 60, 35, YELLOW);
-        oled.fillCircle(mood_position[0], mood_position[1] + 60, 30, BLACK);
-        oled.fillRect(0, mood_position[1] + 50, SCREEN_WIDTH, SCREEN_HEIGHT, BLACK);
+        oled.fillCircle(position[0], position[1] + 60, 30, YELLOW);
+        oled.fillCircle(position[0], position[1] + 60, 25, BLACK);
+        oled.fillRect(0, position[1] + 45, SCREEN_WIDTH, SCREEN_HEIGHT, BLACK);
     }
-    oled.fillCircle(mood_position[0] - 20, mood_position[1], 10, YELLOW);
-    oled.fillCircle(mood_position[0] + 20, mood_position[1], 10, YELLOW);
+    oled.fillCircle(position[0] - 15, position[1], 10, YELLOW);
+    oled.fillCircle(position[0] + 15, position[1], 10, YELLOW);
     //oled.fillCircle(mood_position[0], mood_position[1] + 20, 55, YELLOW);
     //oled.fillCircle(mood_position[0], mood_position[1] + 20, 50, BLACK);
 
     // Water Target Met
     // 0250.00/1500.00
     // 15 chars long
-    oled.setCursor(35, SCREEN_HEIGHT-10);
+    oled.setCursor(0, SCREEN_HEIGHT-10);
     oled.setTextColor(MAGENTA);
     sprintf(drank, "%04.0f", waterDrank);
+    oled.print("Water Drank: ");
     oled.print(drank);
     oled.print("/");
     sprintf(target, "%04.0f", waterTarget);
     oled.print(target);
+    oled.print(" mL");
 
     // Streaks
-    oled.setCursor(SCREEN_WIDTH-20, 0);
+    oled.setCursor(80, 0);
     oled.setTextColor(CYAN);
     sprintf(streak, "%03u", waterStreak);
+    oled.print("Streak: ");
     oled.print(streak);
 }
 
@@ -116,7 +119,7 @@ void loop() {
             oled.fillScreen(BLACK);
             char text[] = "Surface must be level!";
             oled.setTextColor(YELLOW);
-            oled.setCursor(5, SCREEN_HEIGHT-10);
+            oled.setCursor(0, SCREEN_HEIGHT-10);
             oled.print(text);
         }
         previous_accel = 1;
