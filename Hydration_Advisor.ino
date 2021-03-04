@@ -63,7 +63,7 @@ void updateOLED() {
 
     // Water Target Met
     oled.setCursor(0, SCREEN_HEIGHT-10);
-    oled.setTextColor(MAGENTA);
+    oled.setTextColor(CYAN);
     sprintf(drank, "%04.0f", waterDrank);
     oled.print("Target: ");
     oled.print(drank);
@@ -71,18 +71,18 @@ void updateOLED() {
     sprintf(target, "%04.0f", waterTarget);
     oled.print(target);
     oled.print(" mL");
-    oled.drawLine(0, 112, 128, 112, MAGENTA);
+    oled.drawLine(0, 112, 128, 112, CYAN);
 
     // Streak
     oled.setCursor(55, 0);
-    oled.setTextColor(CYAN);
+    oled.setTextColor(MAGENTA);
     sprintf(streak, "%03u", waterStreak);
     oled.print("Streak - ");
     oled.print(streak);
 
     // Rank
     oled.setCursor(55, 15);
-    oled.setTextColor(CYAN);
+    oled.setTextColor(MAGENTA);
     sprintf(rank, "%03u", waterRank);
     oled.print("Rank   - ");
     oled.print(rank);
