@@ -78,11 +78,10 @@ void updateOLED() {
     oled.setTextColor(MAGENTA);
     sprintf(streak, "%03u", waterStreak);
     oled.print("Streak - ");
-    oled.println(streak);
+    oled.print(streak);
 
     // Rank
-    //oled.setCursor(55, 15);
-    //oled.setTextColor(MAGENTA);
+    oled.setCursor(55, 15);
     sprintf(rank, "%03u", waterRank);
     oled.print("Rank   - ");
     oled.print(rank);
