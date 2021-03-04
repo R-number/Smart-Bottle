@@ -116,7 +116,7 @@ void loop() {
             oled.fillScreen(BLACK);
             char text[] = "Surface must be level!";
             oled.setTextColor(YELLOW);
-            oled.setCursor(5, SCREEN_HEIGHT-5);
+            oled.setCursor(5, SCREEN_HEIGHT-10);
             oled.print(text);
         }
         previous_accel = 1;
