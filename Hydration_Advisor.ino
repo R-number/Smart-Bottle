@@ -136,7 +136,7 @@ void loop() {
         reminderFlag = true;
         reminderInterval = millis();
         alertFlag = true;
-        if (waterTarget < ((17 - rtc.now().hour()) * (waterTarget / 8)))
+        if (waterTarget < ((17 - rtc.now().hour()) * (waterTarget / 8))) // Checks if on target.
             alert = "You're a little behind target.";
         else
             alert = "You're on target, well done.";
