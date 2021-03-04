@@ -56,8 +56,8 @@ void updateOLED() {
         oled.fillCircle(position[0], position[1] + 45, 25, BLACK);
         oled.fillRect(0, position[1] + 30, SCREEN_WIDTH, SCREEN_HEIGHT, BLACK);
     }
-    oled.fillCircle(position[0] - 15, position[1], 7, YELLOW);
-    oled.fillCircle(position[0] + 15, position[1], 7, YELLOW);
+    oled.fillCircle(position[0] - 12, position[1], 7, YELLOW);
+    oled.fillCircle(position[0] + 12, position[1], 7, YELLOW);
     //oled.fillCircle(mood_position[0], mood_position[1] + 20, 55, YELLOW);
     //oled.fillCircle(mood_position[0], mood_position[1] + 20, 50, BLACK);
 
