@@ -51,14 +51,14 @@ void updateOLED() {
     position[0] = 24;
     position[1] = 8;
     if (waterDrank / waterTarget >= 0.75) {// 75% of target met. Should it be 100%?
-        oled.fillCircle(position[0], position[1] + 40, 25, YELLOW);
+        oled.fillCircle(position[0], position[1] + 40, 25, YELLOW);// broken
         oled.fillCircle(position[0], position[1] + 40, 20, BLACK);
-        oled.fillRect(0, 0, SCREEN_WIDTH, position[1] - 30, BLACK);
+        oled.fillRect(0, 0, SCREEN_WIDTH, position[1] + 25, BLACK);
     }
     else {
         oled.fillCircle(position[0], position[1] + 40, 25, YELLOW);
         oled.fillCircle(position[0], position[1] + 40, 20, BLACK);
-        oled.fillRect(0, position[1] + 30, SCREEN_WIDTH, SCREEN_HEIGHT, BLACK);
+        oled.fillRect(0, position[1] + 25, SCREEN_WIDTH, SCREEN_HEIGHT, BLACK);
     }
     oled.fillCircle(position[0] - 12, position[1], 7, YELLOW);
     oled.fillCircle(position[0] + 12, position[1], 7, YELLOW);
