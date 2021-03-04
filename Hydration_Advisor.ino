@@ -18,7 +18,7 @@ Adafruit_SSD1351 oled = Adafruit_SSD1351(SCREEN_WIDTH, SCREEN_HEIGHT, &SPI, CS_P
 int flag = 0;
 
 DateTime devTime(2021, 3, 2, 22, 0, 0);
-float waterTarget = 1500;
+float waterTarget = 2000;
 float waterVolume = 0;
 float waterDrank = 0;
 uint8_t waterStreak = 0;
