@@ -135,6 +135,11 @@ void loop() {
     else if ((rtc.now().hour() == 9) || (rtc.now().hour() == 11) || (rtc.now().hour() == 13) || (rtc.now().hour() == 15) || (rtc.now().hour() == 17)) {
         reminderFlag = true;
         reminderInterval = millis();
+        alertFlag = true;
+        if (waterTarget < ((17 - rtc.now().hour()) * (waterTarget / 8)))
+            alert = "You're a little behind target.";
+        else
+            alert = "You're on target, well done.";
         updateOLED();
     }
 
