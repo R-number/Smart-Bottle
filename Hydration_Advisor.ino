@@ -85,6 +85,7 @@ void updateOLED() {
         oled.print(alert);
     }
     else if (exerciseFlag) { // Exercise notification and water target increase.
+        exerciseFlag = false;
         waterTarget += 250;
         oled.print("It is good to hydrate after exercise.");
     }
