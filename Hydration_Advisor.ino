@@ -44,17 +44,17 @@ void updateOLED() {
 
     // Avatar
     oled.setCursor(0, 0);
-    position[0] = 28;
+    position[0] = 24;
     position[1] = 16;
     if (waterDrank / waterTarget >= 0.75) {// 75% of target met. Should it be 100%?
         oled.fillCircle(position[0], position[1] + 45, 30, YELLOW);
         oled.fillCircle(position[0], position[1] + 45, 25, BLACK);
-        oled.fillRect(0, 0, SCREEN_WIDTH, position[1] + 35, BLACK);
+        oled.fillRect(0, 0, SCREEN_WIDTH, position[1] - 30, BLACK);
     }
     else {
         oled.fillCircle(position[0], position[1] + 45, 30, YELLOW);
         oled.fillCircle(position[0], position[1] + 45, 25, BLACK);
-        oled.fillRect(0, position[1] + 35, SCREEN_WIDTH, SCREEN_HEIGHT, BLACK);
+        oled.fillRect(0, position[1] + 30, SCREEN_WIDTH, SCREEN_HEIGHT, BLACK);
     }
     oled.fillCircle(position[0] - 15, position[1], 7, YELLOW);
     oled.fillCircle(position[0] + 15, position[1], 7, YELLOW);
@@ -84,7 +84,7 @@ void updateOLED() {
     oled.setCursor(55, 15);
     oled.setTextColor(CYAN);
     sprintf(rank, "%03u", waterRank);
-    oled.print("Rank - ");
+    oled.print("Rank   - ");
     oled.print(rank);
 }
 
