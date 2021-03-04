@@ -79,26 +79,29 @@ void updateOLED() {
     oled.print(rank);
 
     oled.setTextColor(WHITE); // Message positioning.
-    oled.setCursor(10, 64);
+    oled.setCursor(0, 64);
 
     if (alertFlag) { // Alet Notification
-        oled.println(alert);
+        oled.print(alert);
     }
     else if (exerciseFlag) { // Exercise notification and water target increase.
         waterTarget += 250;
-        oled.println("It is good to hydrate after exercise.");
+        oled.print("It is good to hydrate after exercise.");
     }
     else if (waterDrank / waterTarget >= 0.75) { // Water goal 75%
-        oled.println("You've almost reach your target.");
-        oled.println("Very good so far!");
+        oled.print("You've almost reach your target.");
+        oled.setCursor(0, 74);
+        oled.print("Very good so far!");
     }
     else if (waterDrank / waterTarget >= 0.50) {// Water goal 50%
-        oled.println("You've drunk a lot of water.");
-        oled.println("You're getting close to your target!");
+        oled.print("You've drunk a lot of water.");
+        oled.setCursor(0, 74);
+        oled.print("You're getting close to your target!");
     }
     else if (waterDrank / waterTarget >= 0.25) {// Water goal 25%
-        oled.println("You're drinking a nice amount.");
-        oled.println("Keep it up!");
+        oled.print("You're drinking a nice amount.");
+        oled.setCursor(0, 74);
+        oled.print("Keep it up!");
     }
 
     // Water Target
