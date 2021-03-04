@@ -44,17 +44,17 @@ void updateOLED() {
 
     // Avatar
     oled.setCursor(0, 0);
-    position[0] = 32;
+    position[0] = 16;
     position[1] = 16;
     if (waterDrank / waterTarget >= 0.75) {// 75% of target met. Should it be 100%?
-        oled.fillCircle(position[0], position[1] + 60, 30, YELLOW);
-        oled.fillCircle(position[0], position[1] + 60, 25, BLACK);
-        oled.fillRect(0, 0, SCREEN_WIDTH, position[1] + 35, BLACK);
+        oled.fillCircle(position[0], position[1] + 40, 30, YELLOW);
+        oled.fillCircle(position[0], position[1] + 40, 25, BLACK);
+        oled.fillRect(0, 0, SCREEN_WIDTH, position[1] + 445, BLACK);
     }
     else {
-        oled.fillCircle(position[0], position[1] + 60, 30, YELLOW);
-        oled.fillCircle(position[0], position[1] + 60, 25, BLACK);
-        oled.fillRect(0, position[1] + 35, SCREEN_WIDTH, SCREEN_HEIGHT, BLACK);
+        oled.fillCircle(position[0], position[1] + 40, 30, YELLOW);
+        oled.fillCircle(position[0], position[1] + 40, 25, BLACK);
+        oled.fillRect(0, position[1] + 45, SCREEN_WIDTH, SCREEN_HEIGHT, BLACK);
     }
     oled.fillCircle(position[0] - 15, position[1], 7, YELLOW);
     oled.fillCircle(position[0] + 15, position[1], 7, YELLOW);
@@ -71,17 +71,17 @@ void updateOLED() {
     sprintf(target, "%04.0f", waterTarget);
     oled.print(target);
     oled.print(" mL");
-    oled.drawLine(0, 118, 128, 118, MAGENTA);
+    oled.drawLine(0, 112, 128, 112, MAGENTA);
 
     // Streak
-    oled.setCursor(40, 0);
+    oled.setCursor(60, 0);
     oled.setTextColor(CYAN);
     sprintf(streak, "%03u", waterStreak);
     oled.print("Streak - ");
     oled.print(streak);
 
     // Rank
-    oled.setCursor(40, 20);
+    oled.setCursor(60, 20);
     oled.setTextColor(CYAN);
     sprintf(rank, "%03u", waterRank);
     oled.print("Rank - ");
