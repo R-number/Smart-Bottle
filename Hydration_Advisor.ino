@@ -81,7 +81,7 @@ void updateOLED() {
     oled.print(streak);
 
     // Rank
-    oled.setCursor(55, 20);
+    oled.setCursor(55, 15);
     oled.setTextColor(CYAN);
     sprintf(rank, "%03u", waterRank);
     oled.print("Rank - ");
