@@ -56,13 +56,13 @@ void updateOLED() {
     }
     oled.fillCircle(mood_position[0] - 20, mood_position[1], 10, YELLOW);
     oled.fillCircle(mood_position[0] + 20, mood_position[1], 10, YELLOW);
-    oled.fillCircle(mood_position[0], mood_position[1] + 20, 55, YELLOW);
-    oled.fillCircle(mood_position[0], mood_position[1] + 20, 50, BLACK);
+    //oled.fillCircle(mood_position[0], mood_position[1] + 20, 55, YELLOW);
+    //oled.fillCircle(mood_position[0], mood_position[1] + 20, 50, BLACK);
 
     // Water Target Met
     // 0250.00/1500.00
     // 15 chars long
-    oled.setCursor(25, SCREEN_HEIGHT-5);
+    oled.setCursor(35, SCREEN_HEIGHT-10);
     oled.setTextColor(MAGENTA);
     sprintf(drank, "%04.0f", waterDrank);
     oled.print(drank);
