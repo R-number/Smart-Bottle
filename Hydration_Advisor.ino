@@ -79,7 +79,7 @@ void updateOLED() {
     oled.print(rank);
 
     oled.setTextColor(WHITE); // Message positioning.
-    oled.setCursor(64, 10);
+    oled.setCursor(10, 64);
 
     if (alertFlag) { // Alet Notification
         oled.println(alert);
