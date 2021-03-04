@@ -74,14 +74,14 @@ void updateOLED() {
     oled.drawLine(0, 112, 128, 112, MAGENTA);
 
     // Streak
-    oled.setCursor(60, 0);
+    oled.setCursor(55, 0);
     oled.setTextColor(CYAN);
     sprintf(streak, "%03u", waterStreak);
     oled.print("Streak - ");
     oled.print(streak);
 
     // Rank
-    oled.setCursor(60, 20);
+    oled.setCursor(55, 20);
     oled.setTextColor(CYAN);
     sprintf(rank, "%03u", waterRank);
     oled.print("Rank - ");
