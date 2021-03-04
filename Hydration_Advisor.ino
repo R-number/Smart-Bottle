@@ -124,7 +124,6 @@ void loop() {
     static bool reminderFlag = false;
     static uint32_t reminderInterval;
 
-    // if 9, 11, 1, 3, 5, 7 use rtc
 
     if (reminderFlag) {
         if (millis() - reminderInterval >= 20000) {// 20 second reminder.
@@ -132,6 +131,7 @@ void loop() {
             oled.fillScreen(BLACK);
         }
     }
+    // Reminder every two hours.
     else if ((rtc.now().hour() == 9) || (rtc.now().hour() == 11) || (rtc.now().hour() == 13) || (rtc.now().hour() == 15) || (rtc.now().hour() == 17)) {
         reminderFlag = true;
         reminderInterval = millis();
