@@ -24,6 +24,10 @@ float waterDrank = 0;
 uint8_t waterStreak = 0;
 uint8_t waterRank = 0;
 
+bool alertFlag = 0;
+char* alert;
+bool exerciseFlag = 0;
+
 void setup() {
     Serial.begin(115200);
     setupFSR();
@@ -61,18 +65,6 @@ void updateOLED() {
     //oled.fillCircle(mood_position[0], mood_position[1] + 20, 55, YELLOW);
     //oled.fillCircle(mood_position[0], mood_position[1] + 20, 50, BLACK);
 
-    // Water Target
-    oled.setCursor(5, SCREEN_HEIGHT-10);
-    oled.setTextColor(CYAN);
-    sprintf(drank, "%04.0f", waterDrank);
-    oled.print("Target: ");
-    oled.print(drank);
-    oled.print("/");
-    sprintf(target, "%04.0f", waterTarget);
-    oled.print(target);
-    oled.print(" mL");
-    oled.drawLine(0, 112, 128, 112, CYAN);
-
     // Streak
     oled.setCursor(55, 0);
     oled.setTextColor(MAGENTA);
@@ -85,6 +77,41 @@ void updateOLED() {
     sprintf(rank, "%03u", waterRank);
     oled.print("Rank   - ");
     oled.print(rank);
+
+    oled.setTextColor(WHITE); // Message positioning.
+    oled.setCursor(64, 10);
+
+    if (alertFlag) { // Alet Notification
+        oled.println(alert);
+    }
+    else if (exerciseFlag) { // Exercise notification and water target increase.
+        waterTarget += 250;
+        oled.println("It is good to hydrate after exercise.");
+    }
+    else if (waterDrank / waterTarget >= 0.75) { // Water goal 75%
+        oled.println("You've almost reach your target.");
+        oled.println("Very good so far!");
+    }
+    else if (waterDrank / waterTarget >= 0.50) {// Water goal 50%
+        oled.println("You've drunk a lot of water.");
+        oled.println("You're getting close to your target!");
+    }
+    else if (waterDrank / waterTarget >= 0.25) {// Water goal 25%
+        oled.println("You're drinking a nice amount.");
+        oled.println("Keep it up!");
+    }
+
+    // Water Target
+    oled.setCursor(5, SCREEN_HEIGHT - 10);
+    oled.setTextColor(CYAN);
+    sprintf(drank, "%04.0f", waterDrank);
+    oled.print("Target: ");
+    oled.print(drank);
+    oled.print("/");
+    sprintf(target, "%04.0f", waterTarget);
+    oled.print(target);
+    oled.print(" mL");
+    oled.drawLine(0, 112, 128, 112, CYAN);
 }
 
 void loop() {
@@ -94,6 +121,22 @@ void loop() {
     static uint32_t displayInterval;
     static bool displayFlag = false;
     static bool tiltFlag = false;
+    static bool reminderFlag = false;
+    static uint32_t reminderInterval;
+
+    // if 9, 11, 1, 3, 5, 7 use rtc
+
+    if (reminderFlag) {
+        if (millis() - reminderInterval >= 20000) {// 20 second reminder.
+            reminderFlag = false;
+            oled.fillScreen(BLACK);
+        }
+    }
+    else if ((rtc.now().hour() == 9) || (rtc.now().hour() == 11) || (rtc.now().hour() == 13) || (rtc.now().hour() == 15) || (rtc.now().hour() == 17)) {
+        reminderFlag = true;
+        reminderInterval = millis();
+        updateOLED();
+    }
 
     if (millis() - accelInterval >= 2000) {// Read accelerometer with two second intervals.
         accelInterval = millis();
