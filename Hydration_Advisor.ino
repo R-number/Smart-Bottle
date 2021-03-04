@@ -22,6 +22,7 @@ float waterTarget = 2000;
 float waterVolume = 0;
 float waterDrank = 0;
 uint8_t waterStreak = 0;
+uint8_t waterRank = 0;
 
 void setup() {
     Serial.begin(115200);
@@ -36,6 +37,7 @@ void updateOLED() {
     char drank[6];
     char target[7];
     char streak[3];
+    char rank[3];
     uint8_t position[2];
 
     oled.fillScreen(BLACK);
@@ -73,12 +75,19 @@ void updateOLED() {
     oled.print(" mL");
     oled.drawLine(0, 108, 128, 108, MAGENTA);
 
-    // Streaks
+    // Streak
     oled.setCursor(80, 0);
     oled.setTextColor(CYAN);
     sprintf(streak, "%03u", waterStreak);
-    oled.print("Streak: ");
+    oled.print("Streak - ");
     oled.print(streak);
+
+    // Rank
+    oled.setCursor(80, 20);
+    oled.setTextColor(CYAN);
+    sprintf(rank, "%03u", waterRank);
+    oled.print("Rank - ");
+    oled.print(rank);
 }
 
 void loop() {
