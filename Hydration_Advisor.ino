@@ -61,8 +61,8 @@ void updateOLED() {
     //oled.fillCircle(mood_position[0], mood_position[1] + 20, 55, YELLOW);
     //oled.fillCircle(mood_position[0], mood_position[1] + 20, 50, BLACK);
 
-    // Water Target Met
-    oled.setCursor(0, SCREEN_HEIGHT-10);
+    // Water Target
+    oled.setCursor(5, SCREEN_HEIGHT-10);
     oled.setTextColor(CYAN);
     sprintf(drank, "%04.0f", waterDrank);
     oled.print("Target: ");
