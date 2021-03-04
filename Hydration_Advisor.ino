@@ -45,7 +45,7 @@ void updateOLED() {
     // Avatar
     oled.setCursor(0, 0);
     position[0] = 24;
-    position[1] = 12;
+    position[1] = 8;
     if (waterDrank / waterTarget >= 0.75) {// 75% of target met. Should it be 100%?
         oled.fillCircle(position[0], position[1] + 40, 25, YELLOW);
         oled.fillCircle(position[0], position[1] + 40, 20, BLACK);
