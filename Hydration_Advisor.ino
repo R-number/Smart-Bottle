@@ -71,6 +71,7 @@ void updateOLED() {
     sprintf(target, "%04.0f", waterTarget);
     oled.print(target);
     oled.print(" mL");
+    oled.drawLine(0, 108, 128, 108, MAGENTA);
 
     // Streaks
     oled.setCursor(80, 0);
