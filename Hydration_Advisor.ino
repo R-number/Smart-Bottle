@@ -53,7 +53,7 @@ void updateOLED() {
     if (waterDrank / waterTarget >= 0.75) {// 75% of target met. Should it be 100%?
         oled.fillCircle(position[0], position[1] + 40, 25, YELLOW);// broken
         oled.fillCircle(position[0], position[1] + 40, 20, BLACK);
-        oled.fillRect(0, 0, SCREEN_WIDTH, position[1] + 25, BLACK);
+        oled.fillRect(0, 0, SCREEN_WIDTH, position[1] - 25, BLACK);
     }
     else {
         oled.fillCircle(position[0], position[1] + 40, 25, YELLOW);
@@ -79,7 +79,7 @@ void updateOLED() {
     oled.print(rank);
 
     oled.setTextColor(WHITE); // Message positioning.
-    oled.setCursor(0, 64);
+    oled.setCursor(0, 56);
 
     if (alertFlag) { // Alet Notification
         oled.print(alert);
@@ -87,16 +87,34 @@ void updateOLED() {
     else if (exerciseFlag) { // Exercise notification and water target increase.
         exerciseFlag = false;
         waterTarget += 250;
-        oled.print("Hope you enjoyed your exercise! Remember to drink more water.");
+        oled.print("Hope you enjoyed your");
+        oled.setCursor(0, 64);
+        oled.print("exercise! Remember");
+        oled.setCursor(0, 72);
+        oled.print("to drink more water.");
     }
     else if (waterDrank / waterTarget >= 0.75) { // Water goal 75%
-        oled.print("You've almost reached your target. Keep going!");
+        oled.print("You've almost reached");
+        oled.setCursor(0, 64);
+        oled.print("your target.");
+        oled.setCursor(0, 72);
+        oled.print("Keep going!");
     }
     else if (waterDrank / waterTarget >= 0.50) {// Water goal 50%
-        oled.print("You've drunk a lot of water. You're getting close to your target!");
+        oled.print("You've drunk a lot");
+        oled.setCursor(0, 64);
+        oled.print("of water. You're");
+        oled.setCursor(0, 72);
+        oled.print("getting close to");
+        oled.setCursor(0, 80);
+        oled.print("your target!");
     }
     else if (waterDrank / waterTarget >= 0.25) {// Water goal 25%
-        oled.print("You're drinking a nice amount. Keep it up!");
+        oled.print("You're drinking");
+        oled.setCursor(0, 64);
+        oled.print("a nice amount. Keep it up!");
+        oled.setCursor(0, 72);
+        oled.print("Keep it up!");
     }
 
     // Water Target
