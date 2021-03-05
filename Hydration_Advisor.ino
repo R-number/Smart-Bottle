@@ -24,7 +24,7 @@ float waterDrank = 1500;
 uint8_t waterStreak = 4;
 uint8_t waterRank = 6;
 bool exerciseFlag = false;
-bool reminderFlag = true;// false
+bool reminderFlag = false;
 bool smile = true;// false
 uint8_t message = 0;
 
