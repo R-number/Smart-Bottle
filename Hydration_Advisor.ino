@@ -112,7 +112,7 @@ void updateOLED() {
         oled.setCursor(0, 64);
         oled.print("lot of water. Be");
         oled.setCursor(0, 72);
-        oled.print("careful not too");
+        oled.print("careful not to");
         oled.setCursor(0, 80);
         oled.print("drink too much!");
     }
