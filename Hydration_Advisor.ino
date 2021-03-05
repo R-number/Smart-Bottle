@@ -20,10 +20,10 @@ int flag = 0;
 DateTime devTime(2021, 3, 5, 12, 59, 0);
 float waterTarget = 2000;
 float waterVolume = 0;
-float waterDrank = 1500;
+float waterDrank = 20000;
 uint8_t waterStreak = 4;
 uint8_t waterRank = 6;
-bool exerciseFlag = false;
+bool exerciseFlag = true;
 bool reminderFlag = false;
 bool smile = true;// false
 uint8_t message = 0;
