@@ -51,9 +51,9 @@ void updateOLED() {
     position[0] = 24;
     position[1] = 8;
     if (smile) {
-        oled.fillCircle(position[0], position[1] + 40, 25, YELLOW);
-        oled.fillCircle(position[0], position[1] + 40, 20, BLACK);
-        oled.fillRect(0, 0, SCREEN_WIDTH, position[1] - 25, BLACK);
+        oled.fillCircle(position[0], position[1] + 15, 25, YELLOW);
+        oled.fillCircle(position[0], position[1] + 15, 20, BLACK);
+        oled.fillRect(0, 0, SCREEN_WIDTH, position[1], BLACK);
     }
     else {
         oled.fillCircle(position[0], position[1] + 40, 25, YELLOW);
@@ -135,7 +135,7 @@ void updateOLED() {
     else if (waterDrank / waterTarget >= 0.25) {// Water goal 25%
         oled.print("You're drinking");
         oled.setCursor(0, 64);
-        oled.print("a nice amount. Keep it up!");
+        oled.print("a nice amount.");
         oled.setCursor(0, 72);
         oled.print("Keep it up!");
     }
