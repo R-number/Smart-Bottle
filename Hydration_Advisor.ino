@@ -90,19 +90,13 @@ void updateOLED() {
         oled.print("It is good to hydrate after exercise.");
     }
     else if (waterDrank / waterTarget >= 0.75) { // Water goal 75%
-        oled.print("You've almost reach your target.");
-        oled.setCursor(0, 74);
-        oled.print("Very good so far!");
+        oled.print("You've almost reach your target. Very good so far!");
     }
     else if (waterDrank / waterTarget >= 0.50) {// Water goal 50%
-        oled.print("You've drunk a lot of water.");
-        oled.setCursor(0, 74);
-        oled.print("You're getting close to your target!");
+        oled.print("You've drunk a lot of water. You're getting close to your target!");
     }
     else if (waterDrank / waterTarget >= 0.25) {// Water goal 25%
-        oled.print("You're drinking a nice amount.");
-        oled.setCursor(0, 74);
-        oled.print("Keep it up!");
+        oled.print("You're drinking a nice amount. Keep it up!");
     }
 
     // Water Target
