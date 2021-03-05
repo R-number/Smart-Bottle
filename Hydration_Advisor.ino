@@ -82,7 +82,7 @@ void updateOLED() {
     oled.setCursor(0, 56);
 
     if (reminderFlag) { // Alet Notification
-        if (waterDrank < ((17 - rtc.now().hour()) * (waterTarget / 8))) { // Checks if on target.
+        if (waterDrank < ((8 - (17 - rtc.now().hour())) * (waterTarget / 8))) { // Checks if on target.
             smile = false;
             oled.print("You're a little");
             oled.setCursor(0, 64);
