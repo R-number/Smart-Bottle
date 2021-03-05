@@ -51,7 +51,7 @@ void updateOLED() {
     position[0] = 24;
     position[1] = 8;
     if (smile) {
-        oled.fillCircle(position[0], position[1] + 40, 25, YELLOW);// broken
+        oled.fillCircle(position[0], position[1] + 40, 25, YELLOW);
         oled.fillCircle(position[0], position[1] + 40, 20, BLACK);
         oled.fillRect(0, 0, SCREEN_WIDTH, position[1] - 25, BLACK);
     }
@@ -82,7 +82,7 @@ void updateOLED() {
     oled.setCursor(0, 56);
 
     if (reminderFlag) { // Alet Notification
-        if (waterTarget < ((17 - rtc.now().hour()) * (waterTarget / 8))) { // Checks if on target.
+        if (waterDrank < ((17 - rtc.now().hour()) * (waterTarget / 8))) { // Checks if on target.
             smile = false;
             oled.print("You're a little");
             oled.setCursor(0, 64);
