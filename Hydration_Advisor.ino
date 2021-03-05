@@ -26,6 +26,7 @@ uint8_t waterRank = 6;
 bool targetFlag = false;
 bool exerciseFlag = false;
 bool reminderFlag = false;
+bool smile = false;
 
 void setup() {
     Serial.begin(115200);
@@ -49,7 +50,7 @@ void updateOLED() {
     oled.setCursor(0, 0);
     position[0] = 24;
     position[1] = 8;
-    if (waterDrank / waterTarget >= 0.75) {// 75% of target met. Should it be 100%?
+    if (smile) {// 75% of target met. Should it be 100%?
         oled.fillCircle(position[0], position[1] + 40, 25, YELLOW);// broken
         oled.fillCircle(position[0], position[1] + 40, 20, BLACK);
         oled.fillRect(0, 0, SCREEN_WIDTH, position[1] - 25, BLACK);
@@ -82,6 +83,7 @@ void updateOLED() {
 
     if (reminderFlag) { // Alet Notification
         if (waterTarget < ((17 - rtc.now().hour()) * (waterTarget / 8))) { // Checks if on target.
+            smile = false;
             oled.print("You're a little");
             oled.setCursor(0, 64);
             oled.print("behind target. Try");
@@ -89,6 +91,7 @@ void updateOLED() {
             oled.print("drinking a bit more.");
         }
         else if (waterDrank >= 8000) {
+            smile = true;
             oled.print("You're drinking a");
             oled.setCursor(0, 64);
             oled.print("lot of water. Be");
@@ -98,6 +101,7 @@ void updateOLED() {
             oled.print("drink too much!");
         }
         else {
+            smile = true;
             oled.print("You're on target,");
             oled.setCursor(0, 64);
             oled.print("well done.");
@@ -179,7 +183,6 @@ void loop() {
     else if (((rtc.now().hour() == 9) || (rtc.now().hour() == 11) || (rtc.now().hour() == 13) || (rtc.now().hour() == 15) || (rtc.now().hour() == 17)) && (rtc.now().minute() == 0)) {
         reminderFlag = true;
         reminderInterval = millis();
-        alertFlag = true;
         updateOLED();
     }
     else if (displayFlag) {
