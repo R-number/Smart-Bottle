@@ -54,7 +54,7 @@ void updateOLED() {
     if (smile) {
         oled.fillCircle(position[0], position[1] + 15, 25, YELLOW);
         oled.fillCircle(position[0], position[1] + 15, 20, BLACK);
-        oled.fillRect(0, 0, SCREEN_WIDTH, position[1], BLACK);
+        oled.fillRect(0, 0, SCREEN_WIDTH, position[1] + 15, BLACK);
     }
     else {
         oled.fillCircle(position[0], position[1] + 40, 25, YELLOW);
