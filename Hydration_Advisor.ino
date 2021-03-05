@@ -25,8 +25,9 @@ uint8_t waterStreak = 4;
 uint8_t waterRank = 6;
 bool targetFlag = false;
 bool exerciseFlag = false;
-bool reminderFlag = false;
-bool smile = false;
+bool reminderFlag = true;//false
+bool smile = true;
+uint8_t message = 0;
 
 void setup() {
     Serial.begin(115200);
@@ -84,30 +85,19 @@ void updateOLED() {
     if (reminderFlag) { // Alet Notification
         if (waterDrank < ((8 - (17 - rtc.now().hour())) * (waterTarget / 8))) { // Checks if on target.
             smile = false;
-            oled.print("You're a little");
-            oled.setCursor(0, 64);
-            oled.print("behind target. Try");
-            oled.setCursor(0, 72);
-            oled.print("drinking a bit more.");
+            message = 0;
         }
         else if (waterDrank >= 8000) {
             smile = true;
-            oled.print("You're drinking a");
-            oled.setCursor(0, 64);
-            oled.print("lot of water. Be");
-            oled.setCursor(0, 72);
-            oled.print("careful not too");
-            oled.setCursor(0, 80);
-            oled.print("drink too much!");
+            message = 1;
         }
         else {
+            message = 2;
             smile = true;
-            oled.print("You're on target,");
-            oled.setCursor(0, 64);
-            oled.print("well done.");
         }
     }
-    else if (exerciseFlag) { // Exercise notification and water target increase.
+
+    if (exerciseFlag) { // Exercise notification and water target increase.
         exerciseFlag = false;
         waterTarget += 250;
         oled.print("Hope you enjoyed your");
@@ -116,28 +106,26 @@ void updateOLED() {
         oled.setCursor(0, 72);
         oled.print("to drink more water.");
     }
-    else if (waterDrank / waterTarget >= 0.75) { // Water goal 75%
-        oled.print("You've almost reached");
+    else if (message == 0) {
+        oled.print("You're a little");
         oled.setCursor(0, 64);
-        oled.print("your target.");
+        oled.print("behind target. Try");
         oled.setCursor(0, 72);
-        oled.print("Keep going!");
+        oled.print("drinking a bit more.");
     }
-    else if (waterDrank / waterTarget >= 0.50) {// Water goal 50%
-        oled.print("You've drunk a lot");
+    else if (message == 1) {
+        oled.print("You're drinking a");
         oled.setCursor(0, 64);
-        oled.print("of water. You're");
+        oled.print("lot of water. Be");
         oled.setCursor(0, 72);
-        oled.print("getting close to");
+        oled.print("careful not too");
         oled.setCursor(0, 80);
-        oled.print("your target!");
+        oled.print("drink too much!");
     }
-    else if (waterDrank / waterTarget >= 0.25) {// Water goal 25%
-        oled.print("You're drinking");
+    else {// message == 2
+        oled.print("You're on target,");
         oled.setCursor(0, 64);
-        oled.print("a nice amount.");
-        oled.setCursor(0, 72);
-        oled.print("Keep it up!");
+        oled.print("well done.");
     }
 
     // Water Target
