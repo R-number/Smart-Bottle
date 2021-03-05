@@ -104,6 +104,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ASCII_Font.h" />
+    <ClInclude Include="Header.h" />
     <ClInclude Include="OLED_Driver.h" />
     <ClInclude Include="OLED_GFX.h" />
     <ClInclude Include="RTClib.h" />
