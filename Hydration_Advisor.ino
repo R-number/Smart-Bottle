@@ -28,13 +28,16 @@ bool alertFlag = 0;
 char* alert;
 bool exerciseFlag = 0;
 
+char btin[10]; 
+char btout[10];
+
 void setup() {
     Serial.begin(115200);
     setupFSR();
     setupRTC(devTime);
     setupAccel();
     setupOLED();
-    //setupBluetooth(); 
+    setupBluetooth(); 
 }
 
 void updateOLED() {
@@ -128,8 +131,10 @@ void loop() {
     static bool reminderFlag = false;
     static uint32_t reminderInterval;
 
+    loopBluetooth();
+    delay(5000);
 
-    if (reminderFlag) {
+    /*if (reminderFlag) {
         if (millis() - reminderInterval >= 20000) {// 20 second reminder.
             reminderFlag = false;
             oled.fillScreen(BLACK);
@@ -194,7 +199,7 @@ void loop() {
             updateOLED();
         }
         previous_accel = 2;
-    }
+    }*/
 }
 
 float readFSR() {
@@ -355,8 +360,27 @@ void setupBluetooth() {
 }
 
 void loopBluetooth() {
-    if (Serial1.available())
-        flag = Serial1.read();
+    if (Serial1.available() > 0) {
+        flag = Serial1.parseInt();
+        Serial.print("Flag: ");
+        Serial.println(flag);
+    }
+    
+    
+
+    /*if (btin[0] == "W") {
+        btout[0] = "W";
+        char hexStreak[5] = intToHex(waterStreak);
+        for (int i = 1; i < 4; i++) {
+            btout[i] = hexStreak[i - 1];
+        }
+        Serial1.println(hexStreak);
+    }
+    if (btin[0] == "E") {
+
+    }*/
+
+    /*
     if (flag == 1) {
         digitalWrite(pin_LED, HIGH);
         Serial.println("LED On");
@@ -364,7 +388,19 @@ void loopBluetooth() {
     else if (flag == 0) {
         digitalWrite(pin_LED, HIGH);
         Serial.println("LED Off");
-    }
+    }*/
     //if (Serial.available())
         //Serial1.write(Serial.read());
+}
+
+char* intToHex(int input) { //Convert integer to hex
+    char output[5];
+    
+    for (int i = 0; i < 4; i++) {
+        output[i] = input % 16;
+        input = input / 16;
+    }
+
+    return output;
+
 }
