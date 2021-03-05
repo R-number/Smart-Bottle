@@ -17,12 +17,12 @@ Adafruit_SSD1351 oled = Adafruit_SSD1351(SCREEN_WIDTH, SCREEN_HEIGHT, &SPI, CS_P
 
 int flag = 0;
 
-DateTime devTime(2021, 3, 2, 22, 0, 0);
+DateTime devTime(2021, 3, 5, 12, 59, 0);
 float waterTarget = 2000;
 float waterVolume = 0;
-float waterDrank = 0;
-uint8_t waterStreak = 0;
-uint8_t waterRank = 0;
+float waterDrank = 1500;
+uint8_t waterStreak = 4;
+uint8_t waterRank = 6;
 char* alert;
 bool targetFlag = false;
 bool alertFlag = false;
@@ -87,10 +87,10 @@ void updateOLED() {
     else if (exerciseFlag) { // Exercise notification and water target increase.
         exerciseFlag = false;
         waterTarget += 250;
-        oled.print("It is good to hydrate after exercise.");
+        oled.print("Hope you enjoyed your exercise! Remember to drink more water.");
     }
     else if (waterDrank / waterTarget >= 0.75) { // Water goal 75%
-        oled.print("You've almost reach your target. Very good so far!");
+        oled.print("You've almost reached your target. Keep going!");
     }
     else if (waterDrank / waterTarget >= 0.50) {// Water goal 50%
         oled.print("You've drunk a lot of water. You're getting close to your target!");
@@ -127,6 +127,10 @@ void loop() {
         accel = readAccel();
         Serial.print("accel = ");
         Serial.println(accel);
+        Serial.print("Time: ");
+        Serial.print(rtc.now().hour());
+        Serial.print(":");
+        Serial.print(rtc.now().minute());
     }
 
     if (reminderFlag) {
@@ -136,12 +140,15 @@ void loop() {
         }
     }
     // Reminder every two hours.
-    else if ((rtc.now().hour() == 9) || (rtc.now().hour() == 11) || (rtc.now().hour() == 13) || (rtc.now().hour() == 15) || (rtc.now().hour() == 17)) {
+    else if (((rtc.now().hour() == 9) || (rtc.now().hour() == 11) || (rtc.now().hour() == 13) || (rtc.now().hour() == 15) || (rtc.now().hour() == 17)) && (rtc.now().minute() == 0)) {
         reminderFlag = true;
         reminderInterval = millis();
         alertFlag = true;
         if (waterTarget < ((17 - rtc.now().hour()) * (waterTarget / 8))) // Checks if on target.
-            alert = "You're a little behind target.";
+            alert = "You're a little behind target. Try Drinking a bit more.";
+        else if (waterDrank >= 8000) {
+            alert = "You're drinking a lot of water. Be careful not too drink too much!";
+        }
         else
             alert = "You're on target, well done.";
         updateOLED();
