@@ -25,7 +25,7 @@ uint8_t waterStreak = 4;
 uint8_t waterRank = 6;
 bool exerciseFlag = true;
 bool reminderFlag = false;
-bool smile = true;// false
+bool smile = false;
 uint8_t message = 0;
 
 void setup() {
