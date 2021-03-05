@@ -128,6 +128,12 @@ void loop() {
     static bool reminderFlag = false;
     static uint32_t reminderInterval;
 
+    if (millis() - accelInterval >= 2000) {// Read accelerometer with two second intervals.
+        accelInterval = millis();
+        accel = readAccel();
+        Serial.print("accel = ");
+        Serial.println(accel);
+    }
 
     if (reminderFlag) {
         if (millis() - reminderInterval >= 20000) {// 20 second reminder.
@@ -146,15 +152,7 @@ void loop() {
             alert = "You're on target, well done.";
         updateOLED();
     }
-
-    if (millis() - accelInterval >= 2000) {// Read accelerometer with two second intervals.
-        accelInterval = millis();
-        accel = readAccel();
-        Serial.print("accel = ");
-        Serial.println(accel);
-    }
-
-    if (displayFlag) {
+    else if (displayFlag) {
         if (millis() - displayInterval >= 20000) {// Display message for 20 seconds.
             displayFlag = false;
             oled.fillScreen(BLACK);
