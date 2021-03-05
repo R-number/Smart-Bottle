@@ -23,10 +23,9 @@ float waterVolume = 0;
 float waterDrank = 1500;
 uint8_t waterStreak = 4;
 uint8_t waterRank = 6;
-bool targetFlag = false;
 bool exerciseFlag = false;
-bool reminderFlag = true;//false
-bool smile = true;
+bool reminderFlag = true;// false
+bool smile = true;// false
 uint8_t message = 0;
 
 void setup() {
@@ -210,9 +209,7 @@ void loop() {
             if (volume < waterVolume)
                 waterDrank += waterVolume - volume;
             waterVolume = volume;
-            if (!targetFlag)
-                if (waterDrank >= waterTarget)
-                    targetFlag = true;
+            // streak counting
             updateOLED();
         }
         previous_accel = 2;
