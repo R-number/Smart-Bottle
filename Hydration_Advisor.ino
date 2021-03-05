@@ -1,3 +1,4 @@
+#include "BTComms.h"
 #include <SPI.h>
 #include <Wire.h>
 #include "RTClib.h"
@@ -10,12 +11,14 @@
 #include <Adafruit_SPITFT.h>
 #include <Adafruit_SPITFT_Macros.h>
 #include "Header.h"
+#include "BTComms.h"
 
 Adafruit_ADXL345_Unified accel = Adafruit_ADXL345_Unified();
 RTC_DS3231 rtc;
 Adafruit_SSD1351 oled = Adafruit_SSD1351(SCREEN_WIDTH, SCREEN_HEIGHT, &SPI, CS_PIN, DC_PIN, RST_PIN);
 
-int flag = 0;
+char input;
+nibbles_t unixIn;
 
 DateTime devTime(2021, 3, 2, 22, 0, 0);
 float waterTarget = 2000;
@@ -28,8 +31,6 @@ bool alertFlag = 0;
 char* alert;
 bool exerciseFlag = 0;
 
-char btin[10]; 
-char btout[10];
 
 void setup() {
     Serial.begin(115200);
@@ -132,7 +133,7 @@ void loop() {
     static uint32_t reminderInterval;
 
     loopBluetooth();
-    delay(5000);
+    //delay(5000);
 
     /*if (reminderFlag) {
         if (millis() - reminderInterval >= 20000) {// 20 second reminder.
@@ -361,24 +362,25 @@ void setupBluetooth() {
 
 void loopBluetooth() {
     if (Serial1.available() > 0) {
-        flag = Serial1.parseInt();
-        Serial.print("Flag: ");
-        Serial.println(flag);
-    }
-    
-    
+        input = Serial1.read();
+        Serial.print("Id: ");
+        Serial.println(input);
+        
+        if (input == 'T') {
+            unixIn.NIBBLE0 = asciiToHex((char) Serial.read());
+            unixIn.NIBBLE1 = asciiToHex((char) Serial.read());
+            unixIn.NIBBLE2 = asciiToHex((char) Serial.read());
+            unixIn.NIBBLE3 = asciiToHex((char) Serial.read());
+            unixIn.NIBBLE4 = asciiToHex((char) Serial.read());
+            unixIn.NIBBLE5 = asciiToHex((char) Serial.read());
+            unixIn.NIBBLE6 = asciiToHex((char) Serial.read());
+            unixIn.NIBBLE0 = asciiToHex((char) Serial.read());
 
-    /*if (btin[0] == "W") {
-        btout[0] = "W";
-        char hexStreak[5] = intToHex(waterStreak);
-        for (int i = 1; i < 4; i++) {
-            btout[i] = hexStreak[i - 1];
         }
-        Serial1.println(hexStreak);
     }
-    if (btin[0] == "E") {
+    
 
-    }*/
+    //if(mode == '')
 
     /*
     if (flag == 1) {
@@ -393,14 +395,20 @@ void loopBluetooth() {
         //Serial1.write(Serial.read());
 }
 
-char* intToHex(int input) { //Convert integer to hex
-    char output[5];
-    
-    for (int i = 0; i < 4; i++) {
-        output[i] = input % 16;
-        input = input / 16;
-    }
+char hexToAscii(uint8_t d)
+{
+    if (d < 10)
+        d += '0';
+    else
+        d += ('A' - 10);
+    return d;
+}
 
-    return output;
-
+uint8_t asciiToHex(char c)
+{
+    if (c > '9')
+        c -= ('A' - 10);
+    else
+        c -= '0';
+    return c;
 }
