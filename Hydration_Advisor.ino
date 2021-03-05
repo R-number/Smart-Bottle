@@ -44,6 +44,25 @@ void updateOLED() {
     char rank[3];
     uint8_t position[2];
 
+    if (exerciseFlag) { // Exercise notification and water target increase.
+        exerciseFlag = false;
+        waterTarget += 250;
+        smile = true;
+        message = 3;
+    }
+    else if (waterDrank < ((8 - (17 - rtc.now().hour())) * (waterTarget / 8))) { // Checks if on target.
+        smile = false;
+        message = 0;
+    }
+    else if (waterDrank >= 8000) {
+        smile = true;
+        message = 1;
+    }
+    else {
+        message = 2;
+        smile = true;
+    }
+    
     oled.fillScreen(BLACK);
 
     // Avatar
@@ -81,31 +100,7 @@ void updateOLED() {
     oled.setTextColor(WHITE); // Message positioning.
     oled.setCursor(0, 56);
 
-    if (reminderFlag) { // Alet Notification
-        if (waterDrank < ((8 - (17 - rtc.now().hour())) * (waterTarget / 8))) { // Checks if on target.
-            smile = false;
-            message = 0;
-        }
-        else if (waterDrank >= 8000) {
-            smile = true;
-            message = 1;
-        }
-        else {
-            message = 2;
-            smile = true;
-        }
-    }
-
-    if (exerciseFlag) { // Exercise notification and water target increase.
-        exerciseFlag = false;
-        waterTarget += 250;
-        oled.print("Hope you enjoyed your");
-        oled.setCursor(0, 64);
-        oled.print("exercise! Remember");
-        oled.setCursor(0, 72);
-        oled.print("to drink more water.");
-    }
-    else if (message == 0) {
+    if (message == 0) {
         oled.print("You're a little");
         oled.setCursor(0, 64);
         oled.print("behind target. Try");
@@ -121,10 +116,17 @@ void updateOLED() {
         oled.setCursor(0, 80);
         oled.print("drink too much!");
     }
-    else {// message == 2
+    else if (message == 2) {
         oled.print("You're on target,");
         oled.setCursor(0, 64);
         oled.print("well done.");
+    }
+    else {// message == 3
+        oled.print("Hope you enjoyed your");
+        oled.setCursor(0, 64);
+        oled.print("exercise! Remember");
+        oled.setCursor(0, 72);
+        oled.print("to drink more water.");
     }
 
     // Water Target
@@ -136,7 +138,7 @@ void updateOLED() {
     oled.print("/");
     sprintf(target, "%04.0f", waterTarget);
     oled.print(target);
-    oled.print(" mL");
+    oled.print("mL");
     oled.drawLine(0, 112, 128, 112, CYAN);
 }
 
