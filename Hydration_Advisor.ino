@@ -374,7 +374,7 @@ void loopBluetooth() {
             unixIn.NIBBLE4 = asciiToHex((char) Serial.read());
             unixIn.NIBBLE5 = asciiToHex((char) Serial.read());
             unixIn.NIBBLE6 = asciiToHex((char) Serial.read());
-            unixIn.NIBBLE0 = asciiToHex((char) Serial.read());
+            unixIn.NIBBLE7 = asciiToHex((char) Serial.read());
 
         }
     }

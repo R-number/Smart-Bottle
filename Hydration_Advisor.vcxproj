@@ -104,6 +104,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ASCII_Font.h" />
+    <ClInclude Include="BTComms.h" />
     <ClInclude Include="Header.h" />
     <ClInclude Include="OLED_Driver.h" />
     <ClInclude Include="OLED_GFX.h" />
@@ -112,6 +113,7 @@
     <ClInclude Include="__vm\.Smart Bottle.vsarduino.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="BTComms.cpp" />
     <ClCompile Include="OLED_Driver.cpp" />
     <ClCompile Include="OLED_GFX.cpp" />
     <ClCompile Include="OLED_Lib.cpp" />
