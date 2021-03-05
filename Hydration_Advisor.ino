@@ -376,20 +376,13 @@ void loopBluetooth() {
             unixIn.NIBBLE6 = asciiToHex((char)Serial1.read());
             unixIn.NIBBLE7 = asciiToHex((char)Serial1.read());
 
+            Serial.print("Old Time: ");
+            printTime();
             rtc.adjust(unixIn.VAL);
+
             Serial.print("Time Updated, Current Time: ");
-            Serial.print(rtc.now().year());
-            Serial.print(" ");
-            Serial.print(rtc.now().month());
-            Serial.print(" ");
-            Serial.print(rtc.now().day());
-            Serial.print(" ");
-            Serial.print(rtc.now().hour());
-            Serial.print(" ");
-            Serial.print(rtc.now().minute());
-            Serial.print(" ");
-            Serial.print(rtc.now().second());
-            Serial.println(" ");
+            printTime();
+
         }
         else if(input == 'E') {
             exerciseFlag = true;
@@ -441,4 +434,20 @@ uint8_t asciiToHex(char c)
     else
         c -= '0';
     return c;
+}
+
+void printTime() {
+    Serial.print(rtc.now().year());
+    Serial.print(" ");
+    Serial.print(rtc.now().month());
+    Serial.print(" ");
+    Serial.print(rtc.now().day());
+    Serial.print(" ");
+    Serial.print(rtc.now().hour());
+    Serial.print(" ");
+    Serial.print(rtc.now().minute());
+    Serial.print(" ");
+    Serial.print(rtc.now().second());
+    Serial.println(" ");
+    return;
 }
