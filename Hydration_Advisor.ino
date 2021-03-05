@@ -23,10 +23,9 @@ float waterVolume = 0;
 float waterDrank = 1500;
 uint8_t waterStreak = 4;
 uint8_t waterRank = 6;
-char* alert;
 bool targetFlag = false;
-bool alertFlag = false;
 bool exerciseFlag = false;
+bool reminderFlag = false;
 
 void setup() {
     Serial.begin(115200);
@@ -81,8 +80,28 @@ void updateOLED() {
     oled.setTextColor(WHITE); // Message positioning.
     oled.setCursor(0, 56);
 
-    if (alertFlag) { // Alet Notification
-        oled.print(alert);
+    if (reminderFlag) { // Alet Notification
+        if (waterTarget < ((17 - rtc.now().hour()) * (waterTarget / 8))) { // Checks if on target.
+            oled.print("You're a little");
+            oled.setCursor(0, 64);
+            oled.print("behind target. Try");
+            oled.setCursor(0, 72);
+            oled.print("drinking a bit more.");
+        }
+        else if (waterDrank >= 8000) {
+            oled.print("You're drinking a");
+            oled.setCursor(0, 64);
+            oled.print("lot of water. Be");
+            oled.setCursor(0, 72);
+            oled.print("careful not too");
+            oled.setCursor(0, 80);
+            oled.print("drink too much!");
+        }
+        else {
+            oled.print("You're on target,");
+            oled.setCursor(0, 64);
+            oled.print("well done.");
+        }
     }
     else if (exerciseFlag) { // Exercise notification and water target increase.
         exerciseFlag = false;
@@ -137,7 +156,6 @@ void loop() {
     static uint32_t displayInterval;
     static bool displayFlag = false;
     static bool tiltFlag = false;
-    static bool reminderFlag = false;
     static uint32_t reminderInterval;
 
     if (millis() - accelInterval >= 2000) {// Read accelerometer with two second intervals.
@@ -162,13 +180,6 @@ void loop() {
         reminderFlag = true;
         reminderInterval = millis();
         alertFlag = true;
-        if (waterTarget < ((17 - rtc.now().hour()) * (waterTarget / 8))) // Checks if on target.
-            alert = "You're a little behind target. Try Drinking a bit more.";
-        else if (waterDrank >= 8000) {
-            alert = "You're drinking a lot of water. Be careful not too drink too much!";
-        }
-        else
-            alert = "You're on target, well done.";
         updateOLED();
     }
     else if (displayFlag) {
