@@ -50,7 +50,7 @@ void updateOLED() {
     oled.setCursor(0, 0);
     position[0] = 24;
     position[1] = 8;
-    if (smile) {// 75% of target met. Should it be 100%?
+    if (smile) {
         oled.fillCircle(position[0], position[1] + 40, 25, YELLOW);// broken
         oled.fillCircle(position[0], position[1] + 40, 20, BLACK);
         oled.fillRect(0, 0, SCREEN_WIDTH, position[1] - 25, BLACK);
