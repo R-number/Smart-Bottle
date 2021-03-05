@@ -23,10 +23,10 @@ float waterVolume = 0;
 float waterDrank = 0;
 uint8_t waterStreak = 0;
 uint8_t waterRank = 0;
-
-bool alertFlag = 0;
 char* alert;
-bool exerciseFlag = 0;
+bool targetFlag = false;
+bool alertFlag = false;
+bool exerciseFlag = false;
 
 void setup() {
     Serial.begin(115200);
@@ -189,6 +189,9 @@ void loop() {
             if (volume < waterVolume)
                 waterDrank += waterVolume - volume;
             waterVolume = volume;
+            if (!targetFlag)
+                if (waterDrank >= waterTarget)
+                    targetFlag = true;
             updateOLED();
         }
         previous_accel = 2;
