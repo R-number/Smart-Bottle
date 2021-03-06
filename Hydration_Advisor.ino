@@ -38,6 +38,15 @@ void setup() {
     setupBluetooth(); 
 }
 
+void bottleReset() {
+    if ((rtc.now().hour() == 0) && (rtc.now().minute() == 0)) {
+        Serial.println("Resetting");
+        if (waterDrank >= waterTarget)
+            waterStreak += 1;
+        waterDrank = 0;
+    }
+}
+
 void updateOLED() {
     char drank[6];
     char target[7];
@@ -217,7 +226,7 @@ void loop() {
             displayInterval = millis();
         }
     }
-
+    bottleReset();
     if (reminderFlag) {
         if (millis() - reminderInterval >= 20000) {// 20 second reminder.
             reminderFlag = false;
