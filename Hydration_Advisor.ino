@@ -16,14 +16,15 @@ RTC_DS3231 rtc;
 Adafruit_SSD1351 oled = Adafruit_SSD1351(SCREEN_WIDTH, SCREEN_HEIGHT, &SPI, CS_PIN, DC_PIN, RST_PIN);
 
 char input[11];
+nibbles_t unixIn;
 
-DateTime devTime(2021, 3, 5, 12, 59, 0);
+DateTime devTime(2021, 3, 5, 13, 30, 0);
 float waterTarget = 2000;
 float waterVolume = 0;
-float waterDrank = 20000;
+float waterDrank = 0;
 uint8_t waterStreak = 4;
 uint8_t waterRank = 6;
-bool exerciseFlag = true;
+bool exerciseFlag = false;
 bool reminderFlag = false;
 bool smile = false;
 uint8_t message = 0;
@@ -43,6 +44,17 @@ void updateOLED() {
     char streak[3];
     char rank[3];
     uint8_t position[2];
+    Serial.println(rtc.now().hour());
+    if ((rtc.now().hour() >= 9) && (rtc.now().hour() <= 21)) {
+        if (waterDrank < ((float)(12 - (21 - rtc.now().hour())) * (waterTarget / 12.0))) { // Checks if on target.
+            smile = false;
+            message = 0;
+        }
+        else {
+            message = 2;
+            smile = true;
+        }
+    }
 
     if (exerciseFlag) { // Exercise notification and water target increase.
         exerciseFlag = false;
@@ -50,19 +62,13 @@ void updateOLED() {
         smile = true;
         message = 3;
     }
-    if ((rtc.now().hour() >= 9) && (rtc.now().hour() <= 21)) {
-        if (waterDrank < ((12 - (21 - rtc.now().hour())) * (waterTarget / 12))) { // Checks if on target.
-            smile = false;
-            message = 0;
-        }
-        else if (waterDrank >= 8000) {
-            smile = true;
-            message = 1;
-        }
-        else {
-            message = 2;
-            smile = true;
-        }
+    else if (waterDrank >= 8000) {
+        smile = true;
+        message = 1;
+    }
+    else if (waterDrank >= waterTarget) {
+        smile = true;
+        message = 4;
     }
     
     oled.fillScreen(BLACK);
@@ -123,12 +129,17 @@ void updateOLED() {
         oled.setCursor(0, 64);
         oled.print("well done.");
     }
-    else {// message == 3
+    else if(message == 3){
         oled.print("Hope you enjoyed your");
         oled.setCursor(0, 64);
         oled.print("exercise! Remember");
         oled.setCursor(0, 72);
         oled.print("to drink more water.");
+    }
+    else {//message == 4
+        oled.print("You've hit your goal");
+        oled.setCursor(0, 72);
+        oled.print("     Well Done!");
     }
 
     // Water Target
@@ -151,6 +162,7 @@ void loop() {
     static uint32_t displayInterval;
     static bool displayFlag = false;
     static bool tiltFlag = false;
+    static bool bluetoothFlag = false;
     static uint32_t reminderInterval;
 
     if (millis() - accelInterval >= 2000) {// Read accelerometer and poll Bluetooth with two second intervals.
@@ -158,12 +170,52 @@ void loop() {
         accel = readAccel();
         Serial.print("accel = ");
         Serial.println(accel);
-        Serial.print("Time: ");
-        Serial.print(rtc.now().hour());
-        Serial.print(":");
-        Serial.print(rtc.now().minute());
 
-        loopBluetooth();
+        if (accel == 2) {
+           if (previous_accel != 2) {
+               Serial.println("Measuring");
+                volume = readFSR();
+                Serial.print("Volume: ");
+                Serial.println(volume);
+                if (volume >= 0) {
+                    displayFlag = true;
+                    displayInterval = millis();
+                    if (volume < waterVolume)
+                        waterDrank += waterVolume - volume;
+                    waterVolume = volume;
+                    Serial.print("Water Drunk: ");
+                    Serial.println(waterDrank);
+                    // streak counting
+                    updateOLED();
+                    previous_accel = 2;
+                }
+                
+            }
+        }
+        else if (accel == 1) {
+            if (previous_accel != 1) {
+                tiltFlag = true;
+                displayInterval = millis();
+                oled.fillScreen(BLACK);
+                char text[] = "Surface not level!";
+                oled.setTextColor(YELLOW);
+                oled.setCursor(10, SCREEN_HEIGHT - 10);
+                oled.print(text);
+                previous_accel = 1;
+            }
+        }
+        else if (accel == 0) {
+            if (previous_accel != 0) {
+                //oled.fillScreen(BLACK);
+                previous_accel = 0;
+            }
+        }
+
+        bluetoothFlag = loopBluetooth();
+        if (bluetoothFlag) {
+            displayFlag = true;
+            displayInterval = millis();
+        }
     }
 
     if (reminderFlag) {
@@ -189,36 +241,6 @@ void loop() {
             tiltFlag = false;
             oled.fillScreen(BLACK);
         }
-    }
-    else if (accel == 0) {
-        if (previous_accel != 0)
-            oled.fillScreen(BLACK);
-        previous_accel = 0;
-    }
-    else if (accel == 1) {
-        if (previous_accel != 1) {
-            tiltFlag = true;
-            displayInterval = millis();
-            oled.fillScreen(BLACK);
-            char text[] = "Surface not level!";
-            oled.setTextColor(YELLOW);
-            oled.setCursor(10, SCREEN_HEIGHT-10);
-            oled.print(text);
-        }
-        previous_accel = 1;
-    }
-    else if (accel == 2) {
-        if (previous_accel != 2) {
-            displayFlag = true;
-            displayInterval = millis();
-            volume = readFSR();
-            if (volume < waterVolume)
-                waterDrank += waterVolume - volume;
-            waterVolume = volume;
-            // streak counting
-            updateOLED();
-        }
-        previous_accel = 2;
     }
 }
 
@@ -249,8 +271,10 @@ float readFSR() {
     fsrForce = fsrConductance * constant;
     mass = (fsrForce / 9.81) - bottleMass;
     volume = mass * 1000;*/
-
-    if (voltageFSR < 1.05) {
+    if (voltageFSR < 0.5) {
+        volume = -1;
+    }
+    else if (voltageFSR < 1.05) {
         volume = 0;
     }
     else if (voltageFSR <= 1.26) {
@@ -378,7 +402,7 @@ void setupBluetooth() {
     Serial.println("Ready to connect\nDefualt password is 1234 or 000");
 }
 
-void loopBluetooth() {
+bool loopBluetooth() {
     int i = 0;
     int process = 0;
     int digit1;
@@ -398,7 +422,7 @@ void loopBluetooth() {
             delay(10);
             input[i] = Serial1.read();
             delay(10);
-            input[i + 1] = Serial1.read();
+            input[i] = Serial1.read();
             process = 1;
             break;
         }
@@ -423,12 +447,12 @@ void loopBluetooth() {
             rtc.adjust(unixIn.VAL);
             Serial.print("Time Updated, Current Time: ");
             printTime();
-
         }
         else if (input[0] == 'E') {
             exerciseFlag = true;
             Serial.println("Exercise flag set to true");
             updateOLED();
+            return true;
         }
         else if (input[0] == 'R') {
             Serial.print("Old Rank: ");
@@ -439,6 +463,7 @@ void loopBluetooth() {
             Serial.print("New Rank: ");
             Serial.println(waterRank);
             updateOLED();
+            return true;
         }
         else if (input[0] == 'W') {
             Serial1.write("W");
@@ -447,6 +472,8 @@ void loopBluetooth() {
             Serial1.write("Z\n");
         }
     }
+    return false;
+
 }
 
 char hexToAscii(uint8_t d)
