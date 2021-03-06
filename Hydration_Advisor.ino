@@ -15,7 +15,7 @@ Adafruit_ADXL345_Unified accel = Adafruit_ADXL345_Unified();
 RTC_DS3231 rtc;
 Adafruit_SSD1351 oled = Adafruit_SSD1351(SCREEN_WIDTH, SCREEN_HEIGHT, &SPI, CS_PIN, DC_PIN, RST_PIN);
 
-int flag = 0;
+char input[11];
 
 DateTime devTime(2021, 3, 5, 12, 59, 0);
 float waterTarget = 2000;
@@ -34,7 +34,7 @@ void setup() {
     setupRTC(devTime);
     setupAccel();
     setupOLED();
-    //setupBluetooth(); 
+    setupBluetooth(); 
 }
 
 void updateOLED() {
@@ -153,7 +153,7 @@ void loop() {
     static bool tiltFlag = false;
     static uint32_t reminderInterval;
 
-    if (millis() - accelInterval >= 2000) {// Read accelerometer with two second intervals.
+    if (millis() - accelInterval >= 2000) {// Read accelerometer and poll Bluetooth with two second intervals.
         accelInterval = millis();
         accel = readAccel();
         Serial.print("accel = ");
@@ -162,6 +162,8 @@ void loop() {
         Serial.print(rtc.now().hour());
         Serial.print(":");
         Serial.print(rtc.now().minute());
+
+        loopBluetooth();
     }
 
     if (reminderFlag) {
@@ -373,21 +375,110 @@ void setupOLED() {
 
 void setupBluetooth() {
     Serial1.begin(9600);
-    pinMode(pin_LED, OUTPUT);
     Serial.println("Ready to connect\nDefualt password is 1234 or 000");
 }
 
 void loopBluetooth() {
-    if (Serial1.available())
-        flag = Serial1.read();
-    if (flag == 1) {
-        digitalWrite(pin_LED, HIGH);
-        Serial.println("LED On");
+    int i = 0;
+    int process = 0;
+    int digit1;
+    int digit2;
+
+    while (Serial1.available() > 0) {    //Get String
+        if (i == 0) {
+            Serial.println("Start");
+        }
+        Serial.print(i);
+        Serial.print(": ");
+        input[i] = Serial1.read();
+        Serial.println(input[i]);
+
+        i = i + 1;
+        if (input[i - 1] == 'Z') {
+            delay(10);
+            input[i] = Serial1.read();
+            delay(10);
+            input[i + 1] = Serial1.read();
+            process = 1;
+            break;
+        }
+        delay(10);
     }
-    else if (flag == 0) {
-        digitalWrite(pin_LED, HIGH);
-        Serial.println("LED Off");
+
+    if (process) { //Process String
+        process = 0;
+        if (input[0] == 'T') {
+            Serial.println("Nibbles:");
+            unixIn.NIBBLE0 = asciiToHex(input[8]);
+            unixIn.NIBBLE1 = asciiToHex(input[7]);
+            unixIn.NIBBLE2 = asciiToHex(input[6]);
+            unixIn.NIBBLE3 = asciiToHex(input[5]);
+            unixIn.NIBBLE4 = asciiToHex(input[4]);
+            unixIn.NIBBLE5 = asciiToHex(input[3]);
+            unixIn.NIBBLE6 = asciiToHex(input[2]);
+            unixIn.NIBBLE7 = asciiToHex(input[1]);
+
+            Serial.print("Old Time: ");
+            printTime();
+            rtc.adjust(unixIn.VAL);
+            Serial.print("Time Updated, Current Time: ");
+            printTime();
+
+        }
+        else if (input[0] == 'E') {
+            exerciseFlag = true;
+            Serial.println("Exercise flag set to true");
+            updateOLED();
+        }
+        else if (input[0] == 'R') {
+            Serial.print("Old Rank: ");
+            Serial.println(waterRank);
+            digit1 = asciiToHex(input[1]);
+            digit2 = asciiToHex(input[2]);
+            waterRank = (16 * digit1) + digit2;
+            Serial.print("New Rank: ");
+            Serial.println(waterRank);
+            updateOLED();
+        }
+        else if (input[0] == 'W') {
+            Serial1.write("W");
+            Serial1.write(hexToAscii(waterStreak / 16));
+            Serial1.write(hexToAscii(waterStreak % 16));
+            Serial1.write("Z\n");
+        }
     }
-    //if (Serial.available())
-        //Serial1.write(Serial.read());
+}
+
+char hexToAscii(uint8_t d)
+{
+    if (d < 10)
+        d += '0';
+    else
+        d += ('A' - 10);
+    return d;
+}
+
+uint8_t asciiToHex(char c)
+{
+    if (c > '9')
+        c -= ('A' - 10);
+    else
+        c -= '0';
+    return c;
+}
+
+void printTime() {
+    Serial.print(rtc.now().year());
+    Serial.print(" ");
+    Serial.print(rtc.now().month());
+    Serial.print(" ");
+    Serial.print(rtc.now().day());
+    Serial.print(" ");
+    Serial.print(rtc.now().hour());
+    Serial.print(" ");
+    Serial.print(rtc.now().minute());
+    Serial.print(" ");
+    Serial.print(rtc.now().second());
+    Serial.println(" ");
+    return;
 }
