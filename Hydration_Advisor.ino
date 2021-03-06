@@ -50,17 +50,19 @@ void updateOLED() {
         smile = true;
         message = 3;
     }
-    else if (waterDrank < ((8 - (17 - rtc.now().hour())) * (waterTarget / 8))) { // Checks if on target.
-        smile = false;
-        message = 0;
-    }
-    else if (waterDrank >= 8000) {
-        smile = true;
-        message = 1;
-    }
-    else {
-        message = 2;
-        smile = true;
+    if ((rtc.now().hour() >= 9) && (rtc.now().hour() <= 21)) {
+        if (waterDrank < ((12 - (21 - rtc.now().hour())) * (waterTarget / 12))) { // Checks if on target.
+            smile = false;
+            message = 0;
+        }
+        else if (waterDrank >= 8000) {
+            smile = true;
+            message = 1;
+        }
+        else {
+            message = 2;
+            smile = true;
+        }
     }
     
     oled.fillScreen(BLACK);
@@ -168,8 +170,8 @@ void loop() {
             oled.fillScreen(BLACK);
         }
     }
-    // Reminder every two hours.
-    else if (((rtc.now().hour() == 9) || (rtc.now().hour() == 11) || (rtc.now().hour() == 13) || (rtc.now().hour() == 15) || (rtc.now().hour() == 17)) && (rtc.now().minute() == 0)) {
+    // Reminder every two hours from 9am to 9pm.
+    else if (((rtc.now().hour() == 9) || (rtc.now().hour() == 11) || (rtc.now().hour() == 13) || (rtc.now().hour() == 15) || (rtc.now().hour() == 17) || (rtc.now().hour() == 19) || (rtc.now().hour() == 21)) && (rtc.now().minute() == 0)) {
         reminderFlag = true;
         reminderInterval = millis();
         updateOLED();
