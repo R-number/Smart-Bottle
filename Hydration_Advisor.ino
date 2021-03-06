@@ -17,14 +17,14 @@ Adafruit_ADXL345_Unified accel = Adafruit_ADXL345_Unified();
 RTC_DS3231 rtc;
 Adafruit_SSD1351 oled = Adafruit_SSD1351(SCREEN_WIDTH, SCREEN_HEIGHT, &SPI, CS_PIN, DC_PIN, RST_PIN);
 
-char input;
+char input[11];
 nibbles_t unixIn;
 
 DateTime devTime(2021, 3, 2, 22, 0, 0);
 float waterTarget = 2000;
 float waterVolume = 0;
 float waterDrank = 0;
-uint8_t waterStreak = 0;
+uint8_t waterStreak = 240;
 uint8_t waterRank = 0;
 
 bool alertFlag = 0;
@@ -361,61 +361,73 @@ void setupBluetooth() {
 }
 
 void loopBluetooth() {
-    if (Serial1.available() > 0) {
-        input = Serial1.read();
-        Serial.print("Id: ");
-        Serial.println(input);
+    int i = 0;
+    int process = 0;
+    int digit1;
+    int digit2;
+
+    while(Serial1.available() > 0) {    //Get String
+        if (i == 0) {
+            Serial.println("Start");
+        }
+        Serial.print(i);
+        Serial.print(": ");
+        input[i] = Serial1.read();
+        Serial.println(input[i]);
         
-        if(input == 'T') {
-            unixIn.NIBBLE0 = asciiToHex((char)Serial1.read());
-            unixIn.NIBBLE1 = asciiToHex((char)Serial1.read());
-            unixIn.NIBBLE2 = asciiToHex((char)Serial1.read());
-            unixIn.NIBBLE3 = asciiToHex((char)Serial1.read());
-            unixIn.NIBBLE4 = asciiToHex((char)Serial1.read());
-            unixIn.NIBBLE5 = asciiToHex((char)Serial1.read());
-            unixIn.NIBBLE6 = asciiToHex((char)Serial1.read());
-            unixIn.NIBBLE7 = asciiToHex((char)Serial1.read());
+        i = i + 1;
+        if (input[i-1] == 'Z') {
+            delay(10);
+            input[i] = Serial1.read();
+            delay(10);
+            input[i+1] = Serial1.read();
+            process = 1;
+            break;
+        }
+        delay(10);
+    }
+    if (process) { //Process String
+        process = 0;
+        if (input[0] == 'T') {
+            Serial.println("Nibbles:");
+            unixIn.NIBBLE0 = asciiToHex(input[8]);
+            unixIn.NIBBLE1 = asciiToHex(input[7]);
+            unixIn.NIBBLE2 = asciiToHex(input[6]);
+            unixIn.NIBBLE3 = asciiToHex(input[5]);
+            unixIn.NIBBLE4 = asciiToHex(input[4]);
+            unixIn.NIBBLE5 = asciiToHex(input[3]);
+            unixIn.NIBBLE6 = asciiToHex(input[2]);
+            unixIn.NIBBLE7 = asciiToHex(input[1]);
 
             Serial.print("Old Time: ");
             printTime();
             rtc.adjust(unixIn.VAL);
-
             Serial.print("Time Updated, Current Time: ");
             printTime();
 
         }
-        else if(input == 'E') {
+        else if (input[0] == 'E') {
             exerciseFlag = true;
             Serial.println("Exercise flag set to true");
             //updateOLED();
         }
-        else if(input == 'R') {
-            waterRank = Serial1.read();
+        else if (input[0] == 'R') {
+            Serial.print("Old Rank: ");
+            Serial.println(waterRank);
+            digit1 = asciiToHex(input[1]);
+            digit2 = asciiToHex(input[2]);
+            waterRank = (16*digit1) + digit2;
             Serial.print("New Rank: ");
             Serial.println(waterRank);
             //updateOLED();
         }
-        else if (input == 'W') {
+        else if (input[0] == 'W') {
             Serial1.write("W");
-            Serial1.write(hexToAscii(waterStreak));
+            Serial1.write(hexToAscii(waterStreak / 16));
+            Serial1.write(hexToAscii(waterStreak % 16));
+            Serial1.write("\n");
         }
-        
     }
-    
-
-    //if(mode == '')
-
-    /*
-    if (flag == 1) {
-        digitalWrite(pin_LED, HIGH);
-        Serial.println("LED On");
-    }
-    else if (flag == 0) {
-        digitalWrite(pin_LED, HIGH);
-        Serial.println("LED Off");
-    }*/
-    //if (Serial.available())
-        //Serial1.write(Serial.read());
 }
 
 char hexToAscii(uint8_t d)
