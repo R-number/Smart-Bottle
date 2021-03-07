@@ -44,6 +44,10 @@ void bottleReset() {
         if (waterDrank >= waterTarget)
             waterStreak += 1;
         waterDrank = 0;
+        exerciseFlag = false;
+        waterTarget = 2000;
+        smile = false;
+        message = 0;
     }
 }
 
@@ -196,9 +200,8 @@ void loop() {
                     Serial.println(waterDrank);
                     // streak counting
                     updateOLED();
-                    previous_accel = 2;
                 }
-                
+                previous_accel = 2;
             }
         }
         else if (accel == 1) {
