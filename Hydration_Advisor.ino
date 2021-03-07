@@ -191,6 +191,10 @@ int loopAccel() {
     Y[0] = event.acceleration.y;
     Z[0] = event.acceleration.z;
 
+    Serial.println(X[0]);
+    Serial.println(Y[0]);
+    Serial.println(Z[0]);
+
     for (int i = 1; i < 5; i++) {
         accel.getEvent(&event);
         X[i] = event.acceleration.x;
