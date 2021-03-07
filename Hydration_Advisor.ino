@@ -346,7 +346,7 @@ uint8_t readAccel() {
     }
 
     if (stationary) {
-        if ((X[4] == 0) && (Y[4] == 0) && (Z[4] == 9)) {
+        if ((X[4] == -9) && (Y[4] == 0) && (Z[4] == 0)) {
             weigh = 2;
         }
         else {
@@ -450,7 +450,7 @@ bool loopBluetooth() {
             Serial1.write("W");
             Serial1.write(hexToAscii(waterStreak / 16));
             Serial1.write(hexToAscii(waterStreak % 16));
-            Serial1.write("Z\n");
+            Serial1.write("Z");
         }
     }
     return false;
@@ -474,6 +474,3 @@ uint8_t asciiToHex(char c)
         c -= '0';
     return c;
 }
-Serial
-
-Serial
