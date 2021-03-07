@@ -18,12 +18,12 @@ Adafruit_SSD1351 oled = Adafruit_SSD1351(SCREEN_WIDTH, SCREEN_HEIGHT, &SPI, CS_P
 char input[11];
 nibbles_t unixIn;
 
-DateTime devTime(2021, 3, 5, 13, 30, 0);
+DateTime devTime(2021, 3, 5, 16, 15, 0);
 float waterTarget = 2000;
 float waterVolume = 0;
 float waterDrank = 0;
-uint8_t waterStreak = 4;
-uint8_t waterRank = 6;
+uint8_t waterStreak = 0;
+uint8_t waterRank = 0;
 bool exerciseFlag = false;
 bool reminderFlag = false;
 bool smile = false;
@@ -38,8 +38,8 @@ void setup() {
     setupBluetooth(); 
 }
 
-void bottleReset() {
-    if ((rtc.now().hour() == 0) && (rtc.now().minute() == 0)) {
+void checkbottleReset() {
+    if ((rtc.now().hour() == 0) && (rtc.now().minute() == 0) && (rtc.now().second() <= 10)) {
         Serial.println("Resetting");
         if (waterDrank >= waterTarget)
             waterStreak += 1;
@@ -228,8 +228,9 @@ void loop() {
             displayFlag = true;
             displayInterval = millis();
         }
+
+        checkbottleReset();
     }
-    bottleReset();
     if (reminderFlag) {
         if (millis() - reminderInterval >= 20000) {// 20 second reminder.
             reminderFlag = false;
