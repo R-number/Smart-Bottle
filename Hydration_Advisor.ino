@@ -30,7 +30,6 @@ bool smile = false;
 uint8_t message = 0;
 
 void setup() {
-    Serial.begin(115200);
     setupFSR();
     setupRTC(devTime);
     setupAccel();
@@ -40,7 +39,6 @@ void setup() {
 
 void checkbottleReset() {
     if ((rtc.now().hour() == 0) && (rtc.now().minute() == 0) && (rtc.now().second() <= 10)) {
-        Serial.println("Resetting");
         if (waterDrank >= waterTarget)
             waterStreak += 1;
         waterDrank = 0;
@@ -57,7 +55,7 @@ void updateOLED() {
     char streak[3];
     char rank[3];
     uint8_t position[2];
-    Serial.println(rtc.now().hour());
+
     if ((rtc.now().hour() >= 9) && (rtc.now().hour() <= 21)) {
         if (waterDrank < ((float)(12 - (21 - rtc.now().hour())) * (waterTarget / 12.0))) { // Checks if on target.
             smile = false;
@@ -181,23 +179,16 @@ void loop() {
     if (millis() - accelInterval >= 2000) {// Read accelerometer and poll Bluetooth with two second intervals.
         accelInterval = millis();
         accel = readAccel();
-        Serial.print("accel = ");
-        Serial.println(accel);
 
         if (accel == 2) {
            if (previous_accel != 2) {
-               Serial.println("Measuring");
                 volume = readFSR();
-                Serial.print("Volume: ");
-                Serial.println(volume);
                 if (volume >= 0) {
                     displayFlag = true;
                     displayInterval = millis();
                     if (volume < waterVolume)
                         waterDrank += waterVolume - volume;
                     waterVolume = volume;
-                    Serial.print("Water Drunk: ");
-                    Serial.println(waterDrank);
                     // streak counting
                     updateOLED();
                 }
@@ -355,25 +346,20 @@ uint8_t readAccel() {
     }
 
     if (stationary) {
-        //Serial.print("Stationary, ");
         if ((X[4] == 0) && (Y[4] == 0) && (Z[4] == 9)) {
-            //Serial.println("Upright");
             weigh = 2;
         }
         else {
-            //Serial.println("Tilted");
             weigh = 1;
         }
     }
     else {
-        //Serial.println("Moving");
         weigh = 0;
     }
     return weigh;
 }
 
 void setupFSR() {
-    Serial.begin(9600);
     pinMode(pin_FSR, INPUT);
     pinMode(pin_Vin, OUTPUT);
     analogReadResolution(ADC_Word);
@@ -385,18 +371,14 @@ void setupRTC(DateTime currentTime) {
 }
 
 void setupAccel() {
-    Serial.println();
-    Serial.println("Accelerometer: wire.begin");
     Wire.begin();
     if (!accel.begin())
     {
-        Serial.println("Valid accelerometer sensor not found!");
         while (1);
     }
 }
 
 void setupOLED() {
-    Serial.print("OLED setup.");
     oled.begin();
 
     // You can optionally rotate the display by running the line below.
@@ -412,7 +394,6 @@ void setupOLED() {
 
 void setupBluetooth() {
     Serial1.begin(9600);
-    Serial.println("Ready to connect\nDefualt password is 1234 or 000");
 }
 
 bool loopBluetooth() {
@@ -422,13 +403,7 @@ bool loopBluetooth() {
     int digit2;
 
     while (Serial1.available() > 0) {    //Get String
-        if (i == 0) {
-            Serial.println("Start");
-        }
-        Serial.print(i);
-        Serial.print(": ");
         input[i] = Serial1.read();
-        Serial.println(input[i]);
 
         i = i + 1;
         if (input[i - 1] == 'Z') {
@@ -445,7 +420,6 @@ bool loopBluetooth() {
     if (process) { //Process String
         process = 0;
         if (input[0] == 'T') {
-            Serial.println("Nibbles:");
             unixIn.NIBBLE0 = asciiToHex(input[8]);
             unixIn.NIBBLE1 = asciiToHex(input[7]);
             unixIn.NIBBLE2 = asciiToHex(input[6]);
@@ -455,26 +429,20 @@ bool loopBluetooth() {
             unixIn.NIBBLE6 = asciiToHex(input[2]);
             unixIn.NIBBLE7 = asciiToHex(input[1]);
 
-            Serial.print("Old Time: ");
-            printTime();
             rtc.adjust(unixIn.VAL);
-            Serial.print("Time Updated, Current Time: ");
-            printTime();
+            Serial1.write("TZ");
         }
         else if (input[0] == 'E') {
             exerciseFlag = true;
-            Serial.println("Exercise flag set to true");
+            Serial1.write("EZ");
             updateOLED();
             return true;
         }
         else if (input[0] == 'R') {
-            Serial.print("Old Rank: ");
-            Serial.println(waterRank);
             digit1 = asciiToHex(input[1]);
             digit2 = asciiToHex(input[2]);
             waterRank = (16 * digit1) + digit2;
-            Serial.print("New Rank: ");
-            Serial.println(waterRank);
+            Serial1.write("RZ");
             updateOLED();
             return true;
         }
@@ -506,19 +474,6 @@ uint8_t asciiToHex(char c)
         c -= '0';
     return c;
 }
+Serial
 
-void printTime() {
-    Serial.print(rtc.now().year());
-    Serial.print(" ");
-    Serial.print(rtc.now().month());
-    Serial.print(" ");
-    Serial.print(rtc.now().day());
-    Serial.print(" ");
-    Serial.print(rtc.now().hour());
-    Serial.print(" ");
-    Serial.print(rtc.now().minute());
-    Serial.print(" ");
-    Serial.print(rtc.now().second());
-    Serial.println(" ");
-    return;
-}
+Serial
