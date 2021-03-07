@@ -430,11 +430,11 @@ bool loopBluetooth() {
             unixIn.NIBBLE7 = asciiToHex(input[1]);
 
             rtc.adjust(unixIn.VAL);
-            Serial1.write("TZ");
+            Serial1.write("TZ\n");
         }
         else if (input[0] == 'E') {
             exerciseFlag = true;
-            Serial1.write("EZ");
+            Serial1.write("EZ\n");
             updateOLED();
             return true;
         }
@@ -442,7 +442,7 @@ bool loopBluetooth() {
             digit1 = asciiToHex(input[1]);
             digit2 = asciiToHex(input[2]);
             waterRank = (16 * digit1) + digit2;
-            Serial1.write("RZ");
+            Serial1.write("RZ\n");
             updateOLED();
             return true;
         }
@@ -450,7 +450,7 @@ bool loopBluetooth() {
             Serial1.write("W");
             Serial1.write(hexToAscii(waterStreak / 16));
             Serial1.write(hexToAscii(waterStreak % 16));
-            Serial1.write("Z");
+            Serial1.write("Z\n");
         }
     }
     return false;
