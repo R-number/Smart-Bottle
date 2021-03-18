@@ -22,12 +22,13 @@ DateTime devTime(2021, 3, 5, 16, 15, 0);
 float waterTarget = 2000;
 float waterVolume = 0;
 float waterDrank = 0;
-uint8_t waterStreak = 0;
+uint8_t waterStreak = 8;
 uint8_t waterRank = 0;
 bool exerciseFlag = false;
 bool reminderFlag = false;
 bool smile = false;
 uint8_t message = 0;
+int exercise = 0;
 
 void setup() {
     setupFSR();
@@ -46,6 +47,7 @@ void checkbottleReset() {
         waterTarget = 2000;
         smile = false;
         message = 0;
+        exercise = 0;
     }
 }
 
@@ -72,6 +74,7 @@ void updateOLED() {
         waterTarget += 250;
         smile = true;
         message = 3;
+        exercise = 1;
     }
     else if (waterDrank >= 8000) {
         smile = true;
@@ -433,9 +436,11 @@ bool loopBluetooth() {
             Serial1.write("TZ\n");
         }
         else if (input[0] == 'E') {
-            exerciseFlag = true;
+            if (!exercise) {
+                exerciseFlag = true;
+                updateOLED();
+            }
             Serial1.write("EZ\n");
-            updateOLED();
             return true;
         }
         else if (input[0] == 'R') {
