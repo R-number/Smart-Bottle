@@ -15,11 +15,6 @@
 #include <Adafruit_ADXL345_U.h>
 #include <Adafruit_Sensor.h>
 
-int flag = 0;
-int LED = 8;
-uint32_t FSRpin = 54;
-
-Adafruit_ADXL345_Unified accel = Adafruit_ADXL345_Unified();
 
 RTC_DS3231 rtc;
 DateTime currentTime(2021,3,2,13,40,0);
@@ -53,219 +48,26 @@ float p = 3.1415926;
 
 void setup() {
     Serial.begin(115200);
-    setupFSR();
-
-    setupAccel();
 
     setupRTC();
 
     setupOLED();
 
-    //setupBluetooth(); 
 }
 
 void loop() {
-    float volume;
     float input;
-    int weigh;
     DateTime time = rtc.now();
 
     if (Serial.available() > 0) {
         float input = Serial.parseFloat();
-        /*
-        weigh = loopAccel();
-        if (weigh) {
-            volume = readFSR();
-        }
-        else {
-            Serial.println("Weight not measured");
-        }*/
 
         //loopRTC();
         loopOLED();
     }
 }
 
-void setupFSR() {
-    Serial.begin(9600);
-    pinMode(54, INPUT);
-    pinMode(52, OUTPUT);
-    analogReadResolution(12);
-}
 
-float readFSR() {
-
-    uint32_t readFSR, readVin;
-    float voltageFSR, voltageVin;
-    float volume;
-    float weight;
-    float mass;
-    float bottleMass = 0.290;// bottle + puck
-    int R = 2000;//
-    float Vcc = 3.23;//~3.3
-    float fsrResistance;
-    double fsrConductance;
-    float constant = 11004.9;
-    float fsrForce;
-
-    digitalWrite(52, HIGH);
-    delay(500);
-    // readVin = analogRead(pin_Vin);
-    //voltageVin = (float)(readVin / ADC_Scale);// Connect Vin to A1/D55
-    readFSR = analogRead(54);
-    voltageFSR = ((float)readFSR / 4095.0) * Vcc;
-    Serial.print("Voltage: ");
-    Serial.print(voltageFSR);
-    // Outputs: actual weight, Vcc, voltage, resistance, conductance, force felt, calculated volume
-
-    //300g 2.71V
-    //350g 2.75V
-    //400g 2.79V
-    //450g 2.83V
-    //500g 2.86V
-
-    //2k
-    //1.2 to 1.8
-
-    //Serial.print("Vcc: ");
-    //Serial.print(Vcc);
-    //Serial.println(" V");
-    //Serial.print("Voltage: ");
-    //Serial.print(voltage);
-    //Serial.println(" V");
-    fsrResistance = ((Vcc * R) / voltageFSR) - R;
-    //Serial.print("FSR Resistance: ");
-    //Serial.print(fsrResistance);
-    //Serial.println(" Ohms");
-    fsrConductance = 1.0 / fsrResistance;
-    Serial.print("     Resistance: ");
-    Serial.print(fsrResistance);
-    //Serial.print("FSR Conductance: ");
-    //Serial.print(fsrConductance);
-    //Serial.println(" Ohms");
-    //fsrForce = fsrConductance * constant;
-    //Serial.print("FSR Force: ");
-    //Serial.print(fsrForce);
-    //Serial.println(" N");
-    //mass = (fsrForce / 9.81) - bottleMass;
-    //volume = mass * 1000;
-    //Serial.print("Calculated Volume: ");
-    //Serial.print(volume);
-    //Serial.println(" mL");
-    /*
-    Serial.print(Vcc);
-    Serial.print(", ");
-    Serial.print(voltage);
-    Serial.print(", ");
-    Serial.print(fsrResistance);
-    Serial.print(", ");
-    Serial.print(fsrConductance);
-    Serial.print(", ");
-    Serial.print(fsrForce);
-    Serial.print(", ");
-    //Serial.print(weight);
-    //Serial.print(", ");
-    Serial.println(volume); */
-
-    if (voltageFSR < 1.05) {
-        volume = 0;
-    }
-    else if (voltageFSR <= 1.26) {
-        volume = 100;
-    }
-    else if (voltageFSR <= 1.34) {
-        volume = 200;
-    }
-    else if (voltageFSR <= 1.44) {
-        volume = 300;
-    }
-    else if (voltageFSR < 1.54) {
-        volume = 400;
-    }
-    else {
-        volume = 500;
-    }
-
-    Serial.print("      Volume: ");
-    Serial.println(volume);
-    digitalWrite(52, LOW);
-    delay(500);
-
-    return volume;
-}
-
-void setupAccel() {
-    Serial.println();
-
-    //ACCEL
-    Serial.println("ACCEL - wire.begin ====");
-    Wire.begin();
-    if (!accel.begin())
-    {
-        Serial.println("No valid sensor found");
-        while (1);
-    }
-}
-
-int loopAccel() {
-    int weigh = 0;
-    sensors_event_t event;
-
-    /*          ^ Z
-                |
-                + - - > Y
-               /
-              /
-            /_ X
-    */
-    int X[5];
-    int Y[5];
-    int Z[5];
-    int Xdiff;
-    int Ydiff;
-    int Zdiff;
-    int stationary;
-
-    accel.getEvent(&event);
-    X[0] = event.acceleration.x;
-    Y[0] = event.acceleration.y;
-    Z[0] = event.acceleration.z;
-
-    for (int i = 1; i < 5; i++) {
-        accel.getEvent(&event);
-        X[i] = event.acceleration.x;
-        Y[i] = event.acceleration.y;
-        Z[i] = event.acceleration.z;
-
-        Xdiff = X[i] - X[i - 1];
-        Ydiff = Y[i] - Y[i - 1];
-        Zdiff = Z[i] - Z[i - 1];
-
-        if (!Xdiff && !Ydiff && !Zdiff) {
-            stationary = 1;
-        }
-        else {
-            stationary = 0;
-            break;
-        }
-        delay(400);
-    }
-
-    if (stationary) {
-        Serial.print("Stationary, ");
-        if ((X[4] == 0) && (Y[4] == 0) && (Z[4] == 9)) {
-            Serial.println("Upright");
-            weigh = 1;
-        }
-        else {
-            Serial.println("Tilted");
-        }
-    }
-    else {
-        Serial.println("Moving");
-    }
-    return weigh;
-}
 
 void setupRTC() {
     rtc.begin();
@@ -304,14 +106,6 @@ void setupOLED() {
     tft.begin();
 
     Serial.println("init");
-
-    // You can optionally rotate the display by running the line below.
-    // Note that a value of 0 means no rotation, 1 means 90 clockwise,
-    // 2 means 180 degrees clockwise, and 3 means 270 degrees clockwise.
-    //tft.setRotation(1);
-    // NOTE: The test pattern at the start will NOT be rotated!  The code
-    // for rendering the test pattern talks directly to the display and
-    // ignores any rotation.
 
     return;
 }
